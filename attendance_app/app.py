@@ -1,27 +1,3 @@
-from attendance_app.forms import SignupForm
-# --- Signup Route ---
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    form = SignupForm()
-    if form.validate_on_submit():
-        existing_user = User.query.filter_by(username=form.username.data).first()
-        if existing_user:
-            flash('Username already exists. Please choose another.', 'error')
-        else:
-            user = User(username=form.username.data, role=form.role.data, is_active=True)
-            user.set_password(form.password.data)
-            db.session.add(user)
-            db.session.commit()
-            # Optionally create Employee profile if role is employee
-            if form.role.data == 'employee':
-                employee = Employee(user_id=user.id, name=form.username.data)
-                db.session.add(employee)
-                db.session.commit()
-            flash('Account created successfully! Please log in.', 'success')
-            return redirect(url_for('login'))
-    return render_template('signup.html', form=form)
 
 
 from flask_wtf import FlaskForm
@@ -181,6 +157,31 @@ app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
 # Create upload directory if it doesn't exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# --- Signup Route ---
+from attendance_app.forms import SignupForm
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    form = SignupForm()
+    if form.validate_on_submit():
+        existing_user = User.query.filter_by(username=form.username.data).first()
+        if existing_user:
+            flash('Username already exists. Please choose another.', 'error')
+        else:
+            user = User(username=form.username.data, role=form.role.data, is_active=True)
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()
+            # Optionally create Employee profile if role is employee
+            if form.role.data == 'employee':
+                employee = Employee(user_id=user.id, name=form.username.data)
+                db.session.add(employee)
+                db.session.commit()
+            flash('Account created successfully! Please log in.', 'success')
+            return redirect(url_for('login'))
+    return render_template('signup.html', form=form)
 
 # --- Forms ---
 class LoginForm(FlaskForm):
