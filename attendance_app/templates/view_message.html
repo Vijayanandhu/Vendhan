@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ message.subject }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">{{ message.subject }}</h5>
+                    <a href="{{ url_for('messages') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Messages
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between text-muted mb-3">
+                        <span>
+                            <strong>From:</strong> {{ message.sender.username }}
+                        </span>
+                        <span>
+                            <strong>To:</strong> {{ message.recipient.username if message.recipient else 'Broadcast' }}
+                        </span>
+                        <span>
+                            <strong>Sent:</strong> {{ message.sent_at.strftime('%Y-%m-%d %H:%M') }}
+                        </span>
+                    </div>
+                    <hr>
+                    <p>{{ message.content | safe }}</p>
+
+                    {% if message.attachment_filename %}
+                    <hr>
+                    <p>
+                        <strong>Attachment:</strong>
+                        <a href="{{ url_for('static', filename='uploads/' + message.attachment_filename) }}" target="_blank">
+                            {{ message.attachment_filename }}
+                        </a>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - {{ company_name or 'Attendance App' }}{% endblock %}
+{% block content %}
+<div class="dashboard-header">
+    {% if company_logo %}
+        <img src="{{ url_for('static', filename='uploads/' + company_logo) }}" alt="Company Logo" class="dashboard-logo">
+    {% endif %}
+    <h2 class="dashboard-title">{{ company_name or 'Company Name' }}</h2>
+    <h3 class="dashboard-subtitle">Admin Dashboard</h3>
+    <p class="welcome-text">Welcome back! Here's your company overview for today.</p>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="alert alert-success">
+        <i class="fas fa-user-check"></i>
+        <div class="stat-content">
+            <div class="stat-number">{{ present }}</div>
+            <div class="stat-label">Present Today</div>
+        </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="alert alert-danger">
+        <i class="fas fa-user-times"></i>
+        <div class="stat-content">
+            <div class="stat-number">{{ absent }}</div>
+            <div class="stat-label">Absent Today</div>
+        </div>
+    </div>
+  </div>
+</div>
+
+<div class="admin-actions-header">
+    <h4><i class="fas fa-cogs"></i> Administrative Actions</h4>
+    <p>Manage your company's attendance system</p>
+</div>
+
+<ul class="list-group">
+  <li class="list-group-item">
+    <a href="{{ url_for('company') }}">
+        <i class="fas fa-building"></i>
+        <div class="menu-content">
+            <div class="menu-title">Company Information</div>
+            <div class="menu-description">Update company details, logo, and contact information</div>
+        </div>
+        <i class="fas fa-chevron-right arrow"></i>
+    </a>
+  </li>
+  
+  <li class="list-group-item">
+    <a href="#" onclick="showComingSoon('Employees Management')">
+        <i class="fas fa-users"></i>
+        <div class="menu-content">
+            <div class="menu-title">Manage Employees</div>
+            <div class="menu-description">Add, edit, and manage employee records and permissions</div>
+        </div>
+        <i class="fas fa-chevron-right arrow"></i>
+    </a>
+  </li>
+  
+  <li class="list-group-item">
+    <a href="#" onclick="showComingSoon('Project Management')">
+        <i class="fas fa-project-diagram"></i>
+        <div class="menu-content">
+            <div class="menu-title">Manage Projects</div>
+            <div class="menu-description">Create and track projects, assign team members</div>
+        </div>
+        <i class="fas fa-chevron-right arrow"></i>
+    </a>
+  </li>
+  
+  <li class="list-group-item">
+    <a href="{{ url_for('view_attendance') }}">
+        <i class="fas fa-calendar-check"></i>
+        <div class="menu-content">
+            <div class="menu-title">View Attendance</div>
+            <div class="menu-description">Monitor daily attendance records and patterns</div>
+        </div>
+        <i class="fas fa-chevron-right arrow"></i>
+    </a>
+  </li>
+  
+  <li class="list-group-item">
+    <a href="#" onclick="showComingSoon('Leave Management')">
+        <i class="fas fa-calendar-times"></i>
+        <div class="menu-content">
+            <div class="menu-title">Leave Requests</div>
+            <div class="menu-description">Review and approve employee leave applications</div>
+        </div>
+        <i class="fas fa-chevron-right arrow"></i>
+    </a>
+  </li>
+  
+  <li class="list-group-item">
+    <a href="#" onclick="showComingSoon('Work Reports')">
+        <i class="fas fa-chart-line"></i>
+        <div class="menu-content">
+            <div class="menu-title">Work Summary</div>
+            <div class="menu-description">Analyze productivity metrics and generate reports</div>
+        </div>
+        <i class="fas fa-chevron-right arrow"></i>
+    </a>
+  </li>
+</ul>
+
+<script>
+function showComingSoon(feature) {
+    // Create and show a nice modal-style notification
+    const modal = document.createElement('div');
+    modal.className = 'coming-soon-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-rocket"></i>
+                <h3>Coming Soon!</h3>
+            </div>
+            <div class="modal-body">
+                <p><strong>${feature}</strong> feature is under development.</p>
+                <p>We're working hard to bring you this functionality soon!</p>
+            </div>
+            <div class="modal-footer">
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn-primary">
+                    Got it!
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (modal.parentElement) {
+            modal.remove();
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

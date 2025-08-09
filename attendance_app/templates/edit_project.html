@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Edit Project</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}  {# This includes the CSRF token #}
+        
+        <div class="mb-3">
+            <label for="project_name" class="form-label">Project Name</label>
+            <input type="text" class="form-control" id="project_name" name="name" value="{{ project.name }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="file_count" class="form-label">Number of Files</label>
+            <input type="number" class="form-control" id="file_count" name="file_count" value="{{ project.file_count }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="record_count" class="form-label">Total Records</label>
+            <input type="number" class="form-control" id="record_count" name="record_count" value="{{ project.record_count }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Project</button>
+        <a href="{{ url_for('projects') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

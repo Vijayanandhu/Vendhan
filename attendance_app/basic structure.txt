@@ -1,0 +1,55 @@
+import os
+import zipfile
+
+# Create the directory structure
+base_dir = "/mnt/data/attendance_app"
+dirs = [
+    "templates",
+    "static/css",
+    "static/images"
+]
+files = {
+    "app.py": "# Flask app entry point\n",
+    "config.py": "# Configuration variables\n",
+    "models.py": "# SQLAlchemy models\n",
+    "requirements.txt": "flask\nflask_sqlalchemy\nflask_login\nflask_wtf\nwtforms\n",
+    "desktop_launcher.py": "# Desktop launcher script\n",
+    "templates/base.html": "<!-- Base template -->\n",
+    "templates/index.html": "<!-- Landing page -->\n",
+    "templates/login.html": "<!-- Login form -->\n",
+    "templates/dashboard_admin.html": "<!-- Admin dashboard -->\n",
+    "templates/dashboard_employee.html": "<!-- Employee dashboard -->\n",
+    "templates/company.html": "<!-- Company details -->\n",
+    "templates/employees.html": "<!-- Employee management -->\n",
+    "templates/projects.html": "<!-- Project management -->\n",
+    "templates/attendance.html": "<!-- Attendance clock-in/out -->\n",
+    "templates/leave_requests.html": "<!-- Leave management -->\n",
+    "templates/work_report.html": "<!-- Daily work report submission -->\n",
+    "templates/work_summary.html": "<!-- Admin work summary -->\n",
+    "static/css/style.css": "/* Custom styles */\n",
+    "static/images/logo.png": ""  # Placeholder for an image file
+}
+
+# Create directories
+for d in dirs:
+    os.makedirs(os.path.join(base_dir, d), exist_ok=True)
+
+# Create files
+for path, content in files.items():
+    full_path = os.path.join(base_dir, path)
+    with open(full_path, "wb" if path.endswith(".png") else "w") as f:
+        if path.endswith(".png"):
+            f.write(b"\x89PNG\r\n\x1a\n")  # Minimal PNG header as placeholder
+        else:
+            f.write(content)
+
+# Create ZIP file
+zip_path = "/mnt/data/attendance_app.zip"
+with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+    for root, _, filenames in os.walk(base_dir):
+        for filename in filenames:
+            filepath = os.path.join(root, filename)
+            arcname = os.path.relpath(filepath, base_dir)
+            zipf.write(filepath, arcname)
+
+zip_path

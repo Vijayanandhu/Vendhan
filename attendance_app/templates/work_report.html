@@ -1,0 +1,29 @@
+
+{% extends "base.html" %}
+{% block title %}Submit Work Report{% endblock %}
+{% block content %}
+<h2>Submit Daily Work Report</h2>
+<form method="POST">
+    <div class="mb-3">
+        <label for="project">Project</label>
+        <select name="project_id" class="form-control" required>
+            {% for project in projects %}
+            <option value="{{ project.id }}">{{ project.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label>Number of Files</label>
+        <input type="number" name="num_files" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label>Number of Records</label>
+        <input type="number" name="num_records" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label>Notes</label>
+        <textarea name="notes" class="form-control"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}

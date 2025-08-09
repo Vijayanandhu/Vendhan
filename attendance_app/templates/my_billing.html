@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}My Billing{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Summary Cards -->
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-2x mb-2"></i>
+                    <h4>{{ total_hours }}h</h4>
+                    <p class="mb-0">Total Hours</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-file fa-2x mb-2"></i>
+                    <h4>{{ total_files }}</h4>
+                    <p class="mb-0">Files Processed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                    <h4>${{ "%.2f"|format(total_earnings) }}</h4>
+                    <p class="mb-0">Total Earnings</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-hourglass-half fa-2x mb-2"></i>
+                    <h4>Pending</h4>
+                    <p class="mb-0">Payment Status</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Project Earnings Breakdown
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if project_earnings %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Billing Type</th>
+                                    <th>Rate</th>
+                                    <th>Hours</th>
+                                    <th>Files</th>
+                                    <th>Earnings</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for project_name, data in project_earnings.items() %}
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold">{{ project_name }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'primary' if data.type == 'hourly' else 'info' }}">
+                                            {{ data.type.title() }}
+                                        </span>
+                                    </td>
+                                    <td>${{ data.rate }}</td>
+                                    <td>
+                                        {% if data.hours > 0 %}
+                                        <span class="badge bg-primary">{{ data.hours }}h</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if data.files > 0 %}
+                                        <span class="badge bg-info">{{ data.files }} files</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-success">${{ "%.2f"|format(data.earnings) }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-dark">
+                                    <th colspan="5">Total</th>
+                                    <th>${{ "%.2f"|format(total_earnings) }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No billing data available.</p>
+                        <p class="text-muted">Submit work reports to see your earnings here.</p>
+                        <a href="{{ url_for('add_work_report') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Submit Work Report
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - EMS 2.0{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary-green text-white">
+                    <h3 class="mb-0"><i class="fas fa-user-shield me-2"></i>Admin Profile</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('profile') }}">
+                        {{ csrf_token }}
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" value="{{ current_user.username }}" disabled>
+                        </div>
+                        <hr>
+                        <h5 class="mb-3">Change Password</h5>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary-green"><i class="fas fa-save me-2"></i>Update Password</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

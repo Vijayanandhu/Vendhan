@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% block title %}Project Journal - {{ company_name or 'EMS 2.0' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary-green">
+                    <i class="fas fa-journal-whills me-2"></i>Project Journal
+                </h2>
+                <a href="{{ url_for('add_journal_entry') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add Entry
+                </a>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Filters
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="project_id" class="form-label">Project</label>
+                            <select class="form-select" id="project_id" name="project_id">
+                                <option value="">All Projects</option>
+                                {% for project in projects %}
+                                <option value="{{ project.id }}" 
+                                        {% if filters.project_id == project.id|string %}selected{% endif %}>
+                                    {{ project.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="employee_id" class="form-label">Employee</label>
+                            <select class="form-select" id="employee_id" name="employee_id">
+                                <option value="">All Employees</option>
+                                {% for employee in employees %}
+                                <option value="{{ employee.id }}" 
+                                        {% if filters.employee_id == employee.id|string %}selected{% endif %}>
+                                    {{ employee.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" 
+                                   value="{{ filters.start_date or '' }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" 
+                                   value="{{ filters.end_date or '' }}">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Filter
+                            </button>
+                            <a href="{{ url_for('project_journal') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results -->
+            {% if reports %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Work Reports ({{ reports|length }} entries)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="journalTable">
+                            <thead>
+                                <tr>
+                                    <th>Object ID</th>
+                                    <th>Date</th>
+                                    <th>Project</th>
+                                    <th>Employee</th>
+                                    <th>Status</th>
+                                    <th>Hours Worked</th>
+                                    <th>Files Processed</th>
+                                    <th>Records Entered</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report, employee, project in reports %}
+                                <tr>
+                                    <td>
+                                        <code>WR-{{ report.id }}</code>
+                                    </td>
+                                    <td>{{ report.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ project.name }}</span>
+                                    </td>
+                                    <td>{{ employee.name }}</td>
+                                    <td>
+                                        {% if project.status == 'active' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif project.status == 'completed' %}
+                                            <span class="badge bg-info">Completed</span>
+                                        {% elif project.status == 'on_hold' %}
+                                            <span class="badge bg-warning">On Hold</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ project.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if report.hours_worked > 0 %}
+                                            <strong>{{ report.hours_worked }}</strong> hrs
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if report.num_files > 0 %}
+                                            <strong>{{ report.num_files }}</strong>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if report.num_records > 0 %}
+                                            <strong>{{ report.num_records }}</strong>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if report.notes %}
+                                            <span class="text-truncate d-inline-block text-truncate-200"
+                                                  title="{{ report.notes }}">
+                                                {{ report.notes }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">No notes</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Statistics -->
+            <div class="row mt-4">
+                {% set total_hours = reports|sum(attribute='0.hours_worked') %}
+                {% set total_files = reports|sum(attribute='0.num_files') %}
+                {% set total_records = reports|sum(attribute='0.num_records') %}
+                {% set unique_employees = reports|map(attribute='1.id')|unique|list|length %}
+                {% set unique_projects = reports|map(attribute='2.id')|unique|list|length %}
+
+                <div class="col-md-2">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ reports|length }}</div>
+                        <div class="stat-label">Total Reports</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ "%.1f"|format(total_hours) }}</div>
+                        <div class="stat-label">Total Hours</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ total_files }}</div>
+                        <div class="stat-label">Files Processed</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ total_records }}</div>
+                        <div class="stat-label">Records Entered</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ unique_employees }}</div>
+                        <div class="stat-label">Employees</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ unique_projects }}</div>
+                        <div class="stat-label">Projects</div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-journal-whills fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Work Reports Found</h4>
+                    <p class="text-muted">
+                        {% if filters.project_id or filters.employee_id or filters.start_date or filters.end_date %}
+                            No work reports match your current filters. Try adjusting the filter criteria.
+                        {% else %}
+                            No work reports have been submitted yet. Reports will appear here once employees start submitting their daily work.
+                        {% endif %}
+                    </p>
+                    {% if filters.project_id or filters.employee_id or filters.start_date or filters.end_date %}
+                    <a href="{{ url_for('project_journal') }}" class="btn btn-primary">
+                        <i class="fas fa-times me-2"></i>Clear Filters
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-submit form when filters change
+document.addEventListener('DOMContentLoaded', function() {
+    const filterForm = document.querySelector('form');
+    const selects = filterForm.querySelectorAll('select');
+    
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            // Auto-submit after a short delay to allow for multiple quick changes
+            clearTimeout(window.filterTimeout);
+            window.filterTimeout = setTimeout(() => {
+                filterForm.submit();
+            }, 500);
+        });
+    });
+});
+</script>
+{% endblock %}

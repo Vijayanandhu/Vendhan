@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Billing Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Billing Management</h5>
+                </div>
+                <div class="card-body">
+                    {% if billing_data %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Project</th>
+                                    <th>Period</th>
+                                    <th>Hours/Units</th>
+                                    <th>Rate</th>
+                                    <th>Total Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in billing_data %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if data.employee.profile_picture %}
+                                            <img src="{{ url_for('static', filename='uploads/' + data.employee.profile_picture) }}" 
+                                                 alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px;">
+                                            {% else %}
+                                            <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                                 style="width: 32px; height: 32px;">
+                                                <i class="fas fa-user text-white"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold">{{ data.employee.name }}</div>
+                                                <small class="text-muted">{{ data.employee.department or 'N/A' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>Multiple Projects</td>
+                                    <td>Current Period</td>
+                                    <td>{{ data.total_hours }}h / {{ data.total_files }} files</td>
+                                    <td>Variable</td>
+                                    <td>${{ "%.2f"|format(data.total_earnings) }}</td>
+                                    <td>
+                                        <span class="badge bg-warning">Pending</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success" title="Generate Report">
+                                                <i class="fas fa-file-invoice-dollar"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No billing records found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

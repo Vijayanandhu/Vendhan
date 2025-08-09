@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Attendance App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Enhanced Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4a5568;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-brand i {
+            color: #667eea;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: #4a5568;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-link:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-link:hover::before {
+            left: 100%;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Alert Messages */
+        .alert {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            color: #856404;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Page Switcher */
+        .page-switcher {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .switch-btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .switch-btn.active,
+        .switch-btn:hover {
+            background: rgba(255, 255, 255, 0.95);
+            color: #4a5568;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Content Sections */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Cards */
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card.success {
+            border-left: 5px solid #28a745;
+        }
+
+        .stat-card.danger {
+            border-left: 5px solid #dc3545;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card.success .stat-number {
+            color: #28a745;
+        }
+
+        .stat-card.danger .stat-number {
+            color: #dc3545;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        /* Menu Cards */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .menu-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-decoration: none;
+            color: #4a5568;
+            transition: all 0.3s ease;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+            color: #4a5568;
+        }
+
+        .menu-card:hover::before {
+            left: 100%;
+        }
+
+        .menu-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .menu-description {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+
+        /* Company Form */
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4a5568;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 25px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar-container {
+                padding: 0 1rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .dashboard-title {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-container {
+                margin: 0 1rem;
+                padding: 2rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Enhanced Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="navbar-brand">
+                <i class="fas fa-clock"></i>
+                Attendance App
+            </a>
+            <ul class="nav-links">
+                <li><a href="#" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                <li><a href="#" class="nav-link"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Sample Alert -->
+        <div class="alert">
+            <i class="fas fa-info-circle"></i> Welcome to your enhanced attendance dashboard!
+        </div>
+
+        <!-- Page Switcher -->
+        <div class="page-switcher">
+            <button class="switch-btn active" onclick="showSection('admin')">Admin Dashboard</button>
+            <button class="switch-btn" onclick="showSection('employee')">Employee Dashboard</button>
+            <button class="switch-btn" onclick="showSection('company')">Company Details</button>
+        </div>
+
+        <!-- Admin Dashboard Section -->
+        <div id="admin-section" class="content-section active">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Admin Dashboard</h1>
+                <p class="dashboard-subtitle">Manage your team's attendance and performance</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card success">
+                    <div class="stat-number">24</div>
+                    <div class="stat-label">Present Today</div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Absent Today</div>
+                </div>
+            </div>
+
+            <div class="menu-grid">
+                <a href="#" class="menu-card">
+                    <i class="fas fa-building menu-icon"></i>
+                    <div class="menu-title">Company Info</div>
+                    <div class="menu-description">Manage company details and settings</div>
+                </a>
+                <a href="#" class="menu-card">
+                    <i class="fas fa-users menu-icon"></i>
+                    <div class="menu-title">Manage Employees</div>
+                    <div class="menu-description">Add, edit, and manage employee records</div>
+                </a>
+                <a href="#" class="menu-card">
+                    <i class="fas fa-project-diagram menu-icon"></i>
+                    <div class="menu-title">Manage Projects</div>
+                    <div class="menu-description">Organize and track project progress</div>
+                </a>
+                <a href="#" class="menu-card">
+                    <i class="fas fa-calendar-check menu-icon"></i>
+                    <div class="menu-title">View Attendance</div>
+                    <div class="menu-description">Monitor attendance records and patterns</div>
+                </a>
+                <a href="#" class="menu-card">
+                    <i class="fas fa-calendar-times menu-icon"></i>
+                    <div class="menu-title">Leave Requests</div>
+                    <div class="menu-description">Review and approve leave applications</div>
+                </a>
+                <a href="#" class="menu-card">
+                    <i class="fas fa-chart-line menu-icon"></i>
+                    <div class="menu-title">Work Summary</div>
+                    <div class="menu-description">Analyze productivity and performance metrics</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Employee Dashboard Section -->
+        <div id="employee-section" class="content-section">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Employee Dashboard</h1>
+                <p class="dashboard-subtitle">Track your attendance and manage your work</p>
+            </div>
+
+            <div class="menu-grid">
+                <a href="#" class="menu-card">
+                    <i class="fas fa-clock menu-icon"></i>
+                    <div class="menu-title">Clock In</div>
+                    <div class="menu-description">Start your work day</div>
+                </a>
+                <a href="#" class="menu-card">
+                    <i class="fas fa-sign-out-alt menu-icon"></i>
+                    <div class="menu-title">Clock Out</div>
+                    <div class="menu-description">End your work day</div>
+                </a>
+                <a href="#" class="menu-card">
+                    <i class="fas fa-calendar-alt menu-icon"></i>
+                    <div class="menu-title">View Attendance</div>
+                    <div class="menu-description">Check your attendance history</div>
+                </a>
+                <a href="#" class="menu-card">
+                    <i class="fas fa-plane menu-icon"></i>
+                    <div class="menu-title">Apply for Leave</div>
+                    <div class="menu-description">Submit leave requests</div>
+                </a>
+                <a href="#" class="menu-card">
+                    <i class="fas fa-file-alt menu-icon"></i>
+                    <div class="menu-title">Submit Work Report</div>
+                    <div class="menu-description">Document your daily activities</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Company Details Section -->
+        <div id="company-section" class="content-section">
+            <div class="form-container">
+                <h2 class="form-title">Company Details</h2>
+                <form>
+                    <div class="form-group">
+                        <label class="form-label">Company Name</label>
+                        <input type="text" class="form-control" placeholder="Enter company name" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Address</label>
+                        <input type="text" class="form-control" placeholder="Enter company address" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" placeholder="Enter company email" required>
+                    </div>
+                    <div style="text-align: center;">
+                        <button type="submit" class="btn-primary">
+                            <span class="button-text">Save Changes</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.switch-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName + '-section').classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click effects to menu cards
+            document.querySelectorAll('.menu-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // Create ripple effect
+                    const ripple = document.createElement('div');
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.background = 'rgba(102, 126, 234, 0.3)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+                    ripple.style.left = (e.clientX - e.target.getBoundingClientRect().left - 25) + 'px';
+                    ripple.style.top = (e.clientY - e.target.getBoundingClientRect().top - 25) + 'px';
+                    ripple.style.width = ripple.style.height = '50px';
+                    
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+
+            // Add form submission effect
+            document.querySelector('form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const button = this.querySelector('.btn-primary');
+                const originalText = button.innerHTML;
+                
+                button.innerHTML = '<div class="loading"></div> Saving...';
+                button.disabled = true;
+                
+                setTimeout(() => {
+                    button.innerHTML = '✓ Saved Successfully!';
+                    button.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+                        button.disabled = false;
+                    }, 2000);
+                }, 1500);
+            });
+        });
+
+        // Add ripple animation CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

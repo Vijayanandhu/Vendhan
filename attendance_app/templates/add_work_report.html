@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Work Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Add Work Report</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="workReportForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="project_id" class="form-label">Project</label>
+                                    <select id="project_id" name="project_id" class="form-select" required title="Select Project">
+                                        <option value="">Select a project</option>
+                                        {% for p in projects %}
+                                        <option value="{{ p.id }}" data-template-id="{{ p.report_template_id }}">{{ p.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.date.label(class="form-label") }}
+                                    {{ form.date(class="form-control") }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="dynamic-fields-container">
+                            <!-- Dynamic fields will be inserted here by JavaScript -->
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="4") }}
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Submit Report
+                            </button>
+                            <a href="{{ url_for('work_reports') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const reportTemplatesData = {{ report_templates_data | tojson | safe }};
+
+    document.getElementById('project_id').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const templateId = selectedOption.getAttribute('data-template-id');
+        const container = document.getElementById('dynamic-fields-container');
+        container.innerHTML = ''; // Clear existing fields
+
+        if (templateId && reportTemplatesData[templateId]) {
+            const fields = reportTemplatesData[templateId];
+            fields.forEach(field => {
+                const fieldWrapper = document.createElement('div');
+                fieldWrapper.className = 'mb-3';
+
+                let inputElement;
+                if (field.type === 'textarea') {
+                    inputElement = document.createElement('textarea');
+                    inputElement.rows = 3;
+                } else {
+                    inputElement = document.createElement('input');
+                    inputElement.type = field.type;
+                }
+                
+                inputElement.id = `field_${field.id}`;
+                inputElement.name = `field_${field.id}`;
+                inputElement.className = 'form-control';
+                if (field.required) {
+                    inputElement.required = true;
+                }
+
+                const labelElement = document.createElement('label');
+                labelElement.htmlFor = inputElement.id;
+                labelElement.className = 'form-label';
+                labelElement.textContent = field.label;
+
+                fieldWrapper.appendChild(labelElement);
+                fieldWrapper.appendChild(inputElement);
+                container.appendChild(fieldWrapper);
+            });
+        }
+    });
+</script>
+{% endblock %}

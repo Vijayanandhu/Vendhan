@@ -1,0 +1,145 @@
+{% block extra_js %}
+<!-- FullCalendar JS -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+
+    // Prepare events data
+    const events = [];
+
+    // Add company events
+    {% for event in company_events %}
+    events.push({
+        title: {{ event.title|tojson }},
+        start: {{ (event.event_date.isoformat() ~ ('T' ~ event.event_time.strftime('%H:%M') if event.event_time and not event.is_all_day else ''))|tojson }},
+        allDay: {{ event.is_all_day|tojson }},
+        backgroundColor: {% if event.event_type == "holiday" %}'#dc3545'{% elif event.event_type == "meeting" %}'#6f42c1'{% else %}'#0d6efd'{% endif %},
+        borderColor: {% if event.event_type == "holiday" %}'#dc3545'{% elif event.event_type == "meeting" %}'#6f42c1'{% else %}'#0d6efd'{% endif %},
+        extendedProps: {
+            type: 'company_event',
+            description: {{ event.description|tojson }},
+            eventType: {{ event.event_type|tojson }}
+        }
+    });
+    {% endfor %}
+
+    // Add leave requests
+    {% for leave in leave_requests %}
+    events.push({
+        title: {{ (leave.employee.name ~ ' - ' ~ leave.leave_type|title ~ ' Leave')|tojson }},
+        start: {{ leave.start_date.isoformat()|tojson }},
+        end: {{ (leave.end_date + timedelta(days=1)).isoformat()|tojson }},
+        allDay: true,
+        backgroundColor: '#ffc107',
+        borderColor: '#ffc107',
+        extendedProps: {
+            type: 'leave_request',
+            employee: {{ leave.employee.name|tojson }},
+            reason: {{ leave.reason|tojson }},
+            leaveType: {{ leave.leave_type|tojson }}
+        }
+    });
+    {% endfor %}
+
+    // Add project timelines
+    {% for project in projects %}
+    {% if project.start_date %}
+    events.push({
+        title: {{ ('Project: ' ~ project.name)|tojson }},
+        start: {{ project.start_date.isoformat()|tojson }},
+        {% if project.end_date %}
+        end: {{ (project.end_date + timedelta(days=1)).isoformat()|tojson }},
+        {% endif %}
+        allDay: true,
+        backgroundColor: '#198754',
+        borderColor: '#198754',
+        extendedProps: {
+            type: 'project',
+            description: {{ project.description|tojson }},
+            status: {{ project.status|tojson }}
+        }
+    });
+    {% endif %}
+    {% endfor %}
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: events,
+        eventClick: function(info) {
+            showEventDetails(info.event);
+        },
+        height: 'auto',
+        eventDisplay: 'block',
+        dayMaxEvents: 3,
+        moreLinkClick: 'popover'
+    });
+
+    calendar.render();
+
+    // Event details modal
+    function showEventDetails(event) {
+        const modal = new bootstrap.Modal(document.getElementById('eventDetailsModal'));
+        const title = document.getElementById('eventDetailsTitle');
+        const body = document.getElementById('eventDetailsBody');
+
+        title.textContent = event.title;
+
+        let detailsHtml = '';
+        const props = event.extendedProps;
+
+        if (props.type === 'company_event') {
+            detailsHtml = `
+                <p><strong>Type:</strong> ${props.eventType.replace('_', ' ').toUpperCase()}</p>
+                <p><strong>Date:</strong> ${event.start.toLocaleDateString()}</p>
+                ${!event.allDay ? `<p><strong>Time:</strong> ${event.start.toLocaleTimeString()}</p>` : ''}
+                ${props.description ? `<p><strong>Description:</strong> ${props.description}</p>` : ''}
+            `;
+        } else if (props.type === 'leave_request') {
+            // **FIX:** Check if event.end exists before processing it
+            const endDate = event.end ? new Date(event.end.getTime() - 86400000) : null;
+            const endDateString = endDate ? endDate.toLocaleDateString() : 'N/A';
+            detailsHtml = `
+                <p><strong>Employee:</strong> ${props.employee}</p>
+                <p><strong>Type:</strong> ${props.leaveType.toUpperCase()} Leave</p>
+                <p><strong>Dates:</strong> ${event.start.toLocaleDateString()} - ${endDateString}</p>
+                ${props.reason ? `<p><strong>Reason:</strong> ${props.reason}</p>` : ''}
+            `;
+        } else if (props.type === 'project') {
+            const endDate = event.end ? new Date(event.end.getTime() - 86400000) : null;
+            const endDateString = endDate ? endDate.toLocaleDateString() : 'Not set';
+            detailsHtml = `
+                <p><strong>Status:</strong> ${props.status.toUpperCase()}</p>
+                <p><strong>Start Date:</strong> ${event.start.toLocaleDateString()}</p>
+                <p><strong>End Date:</strong> ${endDateString}</p>
+                ${props.description ? `<p><strong>Description:</strong> ${props.description}</p>` : ''}
+            `;
+        }
+
+        body.innerHTML = detailsHtml;
+        modal.show();
+    }
+
+    // Toggle time field based on all-day checkbox
+    {% if current_user.role == 'admin' %}
+    const allDayCheckbox = document.getElementById('is_all_day');
+    const timeField = document.getElementById('timeField');
+
+    if (allDayCheckbox) {
+        allDayCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                timeField.classList.add('d-none');
+            } else {
+                timeField.classList.remove('d-none');
+            }
+        });
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

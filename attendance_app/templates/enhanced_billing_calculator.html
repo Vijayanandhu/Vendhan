@@ -1,0 +1,640 @@
+{% extends 'base.html' %}
+{% block title %}Billing Calculator - {{ company_name or 'EMS 2.0' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary-green">
+                    <i class="fas fa-calculator me-2"></i>Advanced Billing Calculator
+                </h2>
+                <div class="btn-group">
+                    <a href="{{ url_for('billing_management') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>View Records
+                    </a>
+                    <button type="button" class="btn btn-success" onclick="exportCalculation()">
+                        <i class="fas fa-download me-2"></i>Export CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calculation Parameters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-cog me-2"></i>Calculation Parameters
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="calculationForm">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label for="startDate" class="form-label">Start Date *</label>
+                                <input type="date" class="form-control" id="startDate" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="endDate" class="form-label">End Date *</label>
+                                <input type="date" class="form-control" id="endDate" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="projectFilter" class="form-label">Project</label>
+                                <select class="form-select" id="projectFilter">
+                                    <option value="">All Projects</option>
+                                    {% for project in projects %}
+                                    <option value="{{ project.id }}" 
+                                            data-billing-method="{{ project.billing_method }}"
+                                            data-billing-rate="{{ project.billing_rate }}"
+                                            data-billing-formula="{{ project.billing_formula or '' }}">
+                                        {{ project.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="employeeFilter" class="form-label">Employee</label>
+                                <select class="form-select" id="employeeFilter">
+                                    <option value="">All Employees</option>
+                                    {% for employee in employees %}
+                                    <option value="{{ employee.id }}">{{ employee.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeAttendance" checked>
+                                    <label class="form-check-label" for="includeAttendance">
+                                        Include Attendance Hours
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="includeWorkReports" checked>
+                                    <label class="form-check-label" for="includeWorkReports">
+                                        Include Work Reports
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="applyFormulas" checked>
+                                    <label class="form-check-label" for="applyFormulas">
+                                        Apply Custom Formulas
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-calculator me-2"></i>Calculate Billing
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-lg ms-2" onclick="resetForm()">
+                                <i class="fas fa-undo me-2"></i>Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calculation Results -->
+    <div class="row" id="resultsSection" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Calculation Results
+                    </h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-success" onclick="finalizeCalculation()">
+                            <i class="fas fa-check me-2"></i>Finalize & Save
+                        </button>
+                        <button type="button" class="btn btn-outline-info" onclick="previewReport()">
+                            <i class="fas fa-eye me-2"></i>Preview Report
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Summary Cards -->
+                    <div class="row g-4 mb-4" id="summaryCards">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+
+                    <!-- Detailed Results Table -->
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="resultsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Project</th>
+                                    <th>Billing Method</th>
+                                    <th>Hours Worked</th>
+                                    <th>Units Completed</th>
+                                    <th>Rate</th>
+                                    <th>Formula Applied</th>
+                                    <th>Total Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formula Preview Modal -->
+    <div class="modal fade" id="formulaModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Formula Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Original Formula:</h6>
+                            <code id="originalFormula"></code>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Applied Formula:</h6>
+                            <code id="appliedFormula"></code>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Variables:</h6>
+                        <ul id="formulaVariables"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.summary-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    border-left: 4px solid;
+    text-align: center;
+}
+
+.summary-card.total { border-left-color: var(--primary-green); }
+.summary-card.employees { border-left-color: var(--success-green); }
+.summary-card.projects { border-left-color: #17a2b8; }
+.summary-card.hours { border-left-color: #ffc107; }
+
+.summary-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    line-height: 1;
+}
+
+.summary-label {
+    font-weight: 600;
+    color: var(--dark-gray);
+    margin-top: 0.5rem;
+}
+
+.summary-sublabel {
+    font-size: 0.875rem;
+    color: var(--medium-gray);
+}
+
+.formula-preview {
+    background: var(--light-green);
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
+.calculation-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-calculated { background: #d4edda; color: #155724; }
+.status-error { background: #f8d7da; color: #721c24; }
+.status-pending { background: #fff3cd; color: #856404; }
+
+.amount-display {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.amount-positive { color: var(--success-green); }
+.amount-negative { color: #dc3545; }
+
+@media (max-width: 768px) {
+    .summary-number {
+        font-size: 2rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let calculationResults = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default dates (current month)
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+    document.getElementById('endDate').value = lastDay.toISOString().split('T')[0];
+    
+    // Form submission
+    document.getElementById('calculationForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        performCalculation();
+    });
+});
+
+async function performCalculation() {
+    const formData = new FormData(document.getElementById('calculationForm'));
+    const params = {
+        start_date: document.getElementById('startDate').value,
+        end_date: document.getElementById('endDate').value,
+        project_id: document.getElementById('projectFilter').value,
+        employee_id: document.getElementById('employeeFilter').value,
+        include_attendance: document.getElementById('includeAttendance').checked,
+        include_work_reports: document.getElementById('includeWorkReports').checked,
+        apply_formulas: document.getElementById('applyFormulas').checked
+    };
+    
+    try {
+        showLoading(true);
+        
+        const response = await fetch('/api/billing/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+            },
+            body: JSON.stringify(params)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Calculation failed');
+        }
+        
+        const data = await response.json();
+        calculationResults = data.results;
+        
+        displayResults(data);
+        document.getElementById('resultsSection').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Calculation error:', error);
+        alert('Error performing calculation: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+function displayResults(data) {
+    // Display summary cards
+    const summaryHtml = `
+        <div class="col-lg-3 col-md-6">
+            <div class="summary-card total">
+                <div class="summary-number">$${data.summary.total_amount.toFixed(2)}</div>
+                <div class="summary-label">Total Amount</div>
+                <div class="summary-sublabel">${data.summary.period}</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="summary-card employees">
+                <div class="summary-number">${data.summary.employee_count}</div>
+                <div class="summary-label">Employees</div>
+                <div class="summary-sublabel">${data.summary.active_employees} active</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="summary-card projects">
+                <div class="summary-number">${data.summary.project_count}</div>
+                <div class="summary-label">Projects</div>
+                <div class="summary-sublabel">${data.summary.billing_methods} methods</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6">
+            <div class="summary-card hours">
+                <div class="summary-number">${data.summary.total_hours.toFixed(1)}</div>
+                <div class="summary-label">Total Hours</div>
+                <div class="summary-sublabel">${data.summary.total_units} units</div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('summaryCards').innerHTML = summaryHtml;
+    
+    // Display detailed results
+    const tableBody = document.querySelector('#resultsTable tbody');
+    tableBody.innerHTML = '';
+    
+    data.results.forEach((result, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${result.employee_name}</td>
+            <td>${result.project_name}</td>
+            <td>
+                <span class="badge bg-info">${result.billing_method.replace('_', ' ').toUpperCase()}</span>
+            </td>
+            <td>${result.hours_worked.toFixed(2)}h</td>
+            <td>${result.units_completed}</td>
+            <td>$${result.rate.toFixed(2)}</td>
+            <td>
+                ${result.formula_applied ? 
+                    `<button class="btn btn-sm btn-outline-info" onclick="showFormula(${index})">
+                        <i class="fas fa-eye"></i>
+                    </button>` : 
+                    '<span class="text-muted">Standard</span>'
+                }
+            </td>
+            <td>
+                <span class="amount-display amount-${result.total_amount >= 0 ? 'positive' : 'negative'}">
+                    $${result.total_amount.toFixed(2)}
+                </span>
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="editCalculation(${index})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="removeCalculation(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function showFormula(index) {
+    const result = calculationResults[index];
+    document.getElementById('originalFormula').textContent = result.original_formula || 'N/A';
+    document.getElementById('appliedFormula').textContent = result.applied_formula || 'N/A';
+    
+    const variablesList = document.getElementById('formulaVariables');
+    variablesList.innerHTML = '';
+    
+    if (result.formula_variables) {
+        Object.entries(result.formula_variables).forEach(([key, value]) => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${key}:</strong> ${value}`;
+            variablesList.appendChild(li);
+        });
+    }
+    
+    new bootstrap.Modal(document.getElementById('formulaModal')).show();
+}
+
+function editCalculation(index) {
+    // Implement edit functionality
+    const result = calculationResults[index];
+    const newAmount = prompt(`Edit amount for ${result.employee_name} - ${result.project_name}:`, result.total_amount);
+    
+    if (newAmount !== null && !isNaN(newAmount)) {
+        calculationResults[index].total_amount = parseFloat(newAmount);
+        calculationResults[index].manually_edited = true;
+        
+        // Refresh display
+        displayResults({
+            summary: calculateSummary(calculationResults),
+            results: calculationResults
+        });
+    }
+}
+
+function removeCalculation(index) {
+    if (confirm('Are you sure you want to remove this calculation?')) {
+        calculationResults.splice(index, 1);
+        
+        // Refresh display
+        displayResults({
+            summary: calculateSummary(calculationResults),
+            results: calculationResults
+        });
+    }
+}
+
+function calculateSummary(results) {
+    return {
+        total_amount: results.reduce((sum, r) => sum + r.total_amount, 0),
+        employee_count: new Set(results.map(r => r.employee_id)).size,
+        project_count: new Set(results.map(r => r.project_id)).size,
+        total_hours: results.reduce((sum, r) => sum + r.hours_worked, 0),
+        total_units: results.reduce((sum, r) => sum + r.units_completed, 0),
+        period: `${document.getElementById('startDate').value} to ${document.getElementById('endDate').value}`,
+        active_employees: results.filter(r => r.hours_worked > 0).length,
+        billing_methods: new Set(results.map(r => r.billing_method)).size
+    };
+}
+
+async function finalizeCalculation() {
+    if (calculationResults.length === 0) {
+        alert('No calculations to finalize');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to finalize these calculations? This will create billing records.')) {
+        return;
+    }
+    
+    try {
+        showLoading(true);
+        
+        const response = await fetch('/api/billing/finalize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrf_token]').value
+            },
+            body: JSON.stringify({
+                calculations: calculationResults,
+                period_start: document.getElementById('startDate').value,
+                period_end: document.getElementById('endDate').value
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Finalization failed');
+        }
+        
+        const data = await response.json();
+        alert(`Successfully created ${data.records_created} billing records`);
+        
+        // Redirect to billing management
+        window.location.href = '/billing_management';
+        
+    } catch (error) {
+        console.error('Finalization error:', error);
+        alert('Error finalizing calculations: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+function exportCalculation() {
+    if (calculationResults.length === 0) {
+        alert('No calculations to export');
+        return;
+    }
+    
+    // Create CSV content
+    const headers = ['Employee', 'Project', 'Billing Method', 'Hours Worked', 'Units Completed', 'Rate', 'Total Amount'];
+    const csvContent = [
+        headers.join(','),
+        ...calculationResults.map(result => [
+            `"${result.employee_name}"`,
+            `"${result.project_name}"`,
+            result.billing_method,
+            result.hours_worked,
+            result.units_completed,
+            result.rate,
+            result.total_amount
+        ].join(','))
+    ].join('\n');
+    
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `billing_calculation_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function resetForm() {
+    document.getElementById('calculationForm').reset();
+    document.getElementById('resultsSection').style.display = 'none';
+    calculationResults = [];
+    
+    // Reset default dates
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+    document.getElementById('endDate').value = lastDay.toISOString().split('T')[0];
+}
+
+function showLoading(show) {
+    const button = document.querySelector('#calculationForm button[type="submit"]');
+    if (show) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Calculating...';
+    } else {
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-calculator me-2"></i>Calculate Billing';
+    }
+}
+
+function previewReport() {
+    // Open a new window with a printable report
+    const reportWindow = window.open('', '_blank');
+    const reportContent = generateReportHTML();
+    reportWindow.document.write(reportContent);
+    reportWindow.document.close();
+}
+
+function generateReportHTML() {
+    const summary = calculateSummary(calculationResults);
+    
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Billing Calculation Report</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .header { text-align: center; margin-bottom: 30px; }
+                .summary { background: #f8f9fa; padding: 20px; margin-bottom: 30px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+                .total { font-weight: bold; background-color: #e9ecef; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Billing Calculation Report</h1>
+                <p>Period: ${summary.period}</p>
+                <p>Generated: ${new Date().toLocaleString()}</p>
+            </div>
+            
+            <div class="summary">
+                <h2>Summary</h2>
+                <p><strong>Total Amount:</strong> $${summary.total_amount.toFixed(2)}</p>
+                <p><strong>Employees:</strong> ${summary.employee_count}</p>
+                <p><strong>Projects:</strong> ${summary.project_count}</p>
+                <p><strong>Total Hours:</strong> ${summary.total_hours.toFixed(2)}</p>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Project</th>
+                        <th>Billing Method</th>
+                        <th>Hours</th>
+                        <th>Units</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${calculationResults.map(result => `
+                        <tr>
+                            <td>${result.employee_name}</td>
+                            <td>${result.project_name}</td>
+                            <td>${result.billing_method}</td>
+                            <td>${result.hours_worked.toFixed(2)}</td>
+                            <td>${result.units_completed}</td>
+                            <td>$${result.rate.toFixed(2)}</td>
+                            <td>$${result.total_amount.toFixed(2)}</td>
+                        </tr>
+                    `).join('')}
+                    <tr class="total">
+                        <td colspan="6"><strong>Total</strong></td>
+                        <td><strong>$${summary.total_amount.toFixed(2)}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `;
+}
+</script>
+{% endblock %}

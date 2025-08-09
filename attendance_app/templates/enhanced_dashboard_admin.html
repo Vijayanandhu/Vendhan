@@ -1,0 +1,524 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - {{ company_name or 'EMS 2.0' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="welcome-card">
+                <h2 class="welcome-title">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    Welcome back, {{ current_user.employee.name if current_user.employee else current_user.username }}
+                </h2>
+                <p class="welcome-subtitle">Here's what's happening in your organization today</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics Row -->
+    <div class="row g-4 mb-4">
+        <!-- Attendance Today -->
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card metric-primary">
+                <div class="metric-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-number">{{ present|default(0) }}</div>
+                    <div class="metric-label">Present Today</div>
+                    <div class="metric-sublabel">{{ absent|default(0) }} absent</div>
+                </div>
+                <div class="metric-progress">
+                    {% set attendance_rate = (present / total_employees * 100) if total_employees > 0 else 0 %}
+                    <div class="progress">
+                        <div class="progress-bar" style="width: {{ attendance_rate }}%"></div>
+                    </div>
+                    <small>{{ "%.1f"|format(attendance_rate) }}% attendance rate</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Projects -->
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card metric-success">
+                <div class="metric-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-number">{{ active_projects|default(0) }}</div>
+                    <div class="metric-label">Active Projects</div>
+                    <div class="metric-sublabel">{{ completed_projects|default(0) }} completed</div>
+                </div>
+                <div class="metric-action">
+                    <a href="{{ url_for('projects') }}" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-eye me-1"></i>View All
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Leaves -->
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card metric-warning">
+                <div class="metric-icon">
+                    <i class="fas fa-calendar-times"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-number">{{ pending_leaves|default(0) }}</div>
+                    <div class="metric-label">Pending Leaves</div>
+                    <div class="metric-sublabel">{{ approved_leaves_today|default(0) }} on leave today</div>
+                </div>
+                <div class="metric-action">
+                    <a href="{{ url_for('admin_leave_requests') }}" class="btn btn-sm btn-outline-warning">
+                        <i class="fas fa-check me-1"></i>Review
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Work Reports -->
+        <div class="col-lg-3 col-md-6">
+            <div class="metric-card metric-info">
+                <div class="metric-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="metric-content">
+                    <div class="metric-number">{{ reports_today|default(0) }}</div>
+                    <div class="metric-label">Reports Today</div>
+                    <div class="metric-sublabel">{{ pending_reports|default(0) }} pending review</div>
+                </div>
+                <div class="metric-action">
+                    <a href="{{ url_for('admin_work_reports') }}" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-list me-1"></i>View All
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Analytics Row -->
+    <div class="row g-4 mb-4">
+        <!-- Attendance Trend Chart -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Attendance Trend (Last 7 Days)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="attendanceChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-pie me-2"></i>Quick Stats
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="stat-item">
+                        <div class="stat-icon bg-primary">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-details">
+                            <div class="stat-number">{{ total_employees|default(0) }}</div>
+                            <div class="stat-label">Total Employees</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-icon bg-success">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="stat-details">
+                            <div class="stat-number">{{ total_training_modules|default(0) }}</div>
+                            <div class="stat-label">Training Modules</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-icon bg-warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-details">
+                            <div class="stat-number">{{ pending_training|default(0) }}</div>
+                            <div class="stat-label">Pending Training</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Row -->
+    <div class="row g-4">
+        <!-- Recent Leave Requests -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calendar-times me-2"></i>Recent Leave Requests
+                    </h5>
+                    <a href="{{ url_for('admin_leave_requests') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_leaves %}
+                        <div class="list-group list-group-flush">
+                            {% for leave in recent_leaves %}
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">{{ leave.employee.name }}</div>
+                                    <small class="text-muted">
+                                        {{ leave.start_date.strftime('%m/%d') }} - {{ leave.end_date.strftime('%m/%d') }}
+                                        • {{ leave.leave_type|title if leave.leave_type else 'Leave' }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-warning rounded-pill">Pending</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <p>No pending leave requests</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Work Reports -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>Recent Work Reports
+                    </h5>
+                    <a href="{{ url_for('admin_work_reports') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_work_reports %}
+                        <div class="list-group list-group-flush">
+                            {% for report in recent_work_reports %}
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">{{ report.employee.name }}</div>
+                                    <small class="text-muted">
+                                        {{ report.project.name }} • {{ report.date.strftime('%m/%d/%Y') }}
+                                        {% if report.record_count %}
+                                            • {{ report.record_count }} records
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <span class="badge bg-{{ 'success' if report.is_approved else 'secondary' }} rounded-pill">
+                                    {{ 'Approved' if report.is_approved else 'Pending' }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-clipboard fa-2x mb-2"></i>
+                            <p>No recent work reports</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('add_employee') }}" class="quick-action-btn">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Add Employee</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('add_project') }}" class="quick-action-btn">
+                                <i class="fas fa-plus-circle"></i>
+                                <span>New Project</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('add_training_module') }}" class="quick-action-btn">
+                                <i class="fas fa-graduation-cap"></i>
+                                <span>Add Training</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('billing_management') }}" class="quick-action-btn">
+                                <i class="fas fa-calculator"></i>
+                                <span>Billing</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('calendar') }}" class="quick-action-btn">
+                                <i class="fas fa-calendar-plus"></i>
+                                <span>Add Event</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('messages') }}" class="quick-action-btn">
+                                <i class="fas fa-bullhorn"></i>
+                                <span>Broadcast</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.welcome-card {
+    background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+}
+
+.welcome-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-subtitle {
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+.metric-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    border-left: 4px solid;
+    transition: var(--transition);
+    height: 100%;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.metric-primary { border-left-color: var(--primary-green); }
+.metric-success { border-left-color: var(--success-green); }
+.metric-warning { border-left-color: #ffc107; }
+.metric-info { border-left-color: #17a2b8; }
+
+.metric-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.metric-primary .metric-icon { background: var(--primary-green); }
+.metric-success .metric-icon { background: var(--success-green); }
+.metric-warning .metric-icon { background: #ffc107; }
+.metric-info .metric-icon { background: #17a2b8; }
+
+.metric-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    line-height: 1;
+}
+
+.metric-label {
+    font-weight: 600;
+    color: var(--dark-gray);
+    margin-bottom: 0.25rem;
+}
+
+.metric-sublabel {
+    font-size: 0.875rem;
+    color: var(--medium-gray);
+}
+
+.metric-progress {
+    margin-top: 1rem;
+}
+
+.metric-progress .progress {
+    height: 4px;
+    background-color: var(--light-green);
+}
+
+.metric-progress .progress-bar {
+    background-color: var(--primary-green);
+}
+
+.metric-action {
+    margin-top: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--light-green);
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-green);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--medium-gray);
+}
+
+.quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    background: white;
+    border: 2px solid var(--light-green);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    color: var(--primary-green);
+    transition: var(--transition);
+    height: 100%;
+}
+
+.quick-action-btn:hover {
+    background: var(--primary-green);
+    color: white;
+    border-color: var(--primary-green);
+    transform: translateY(-2px);
+}
+
+.quick-action-btn i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.quick-action-btn span {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .welcome-title {
+        font-size: 1.5rem;
+    }
+    
+    .metric-number {
+        font-size: 2rem;
+    }
+    
+    .quick-action-btn {
+        padding: 1rem 0.5rem;
+    }
+    
+    .quick-action-btn i {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Attendance Trend Chart
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('attendanceChart').getContext('2d');
+    
+    const attendanceData = {{ attendance_trend|tojson if attendance_trend else '[]' }};
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: attendanceData.map(item => item.date),
+            datasets: [{
+                label: 'Present Employees',
+                data: attendanceData.map(item => item.count),
+                borderColor: 'rgb(45, 90, 39)',
+                backgroundColor: 'rgba(45, 90, 39, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: {{ total_employees|default(10) }},
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    radius: 6,
+                    hoverRadius: 8
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

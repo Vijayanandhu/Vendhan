@@ -1,0 +1,305 @@
+/* Reset some default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa; /* Light background */
+    color: #343a40; /* Dark text for contrast */
+    line-height: 1.6;
+}
+
+/* Navbar Styles */
+.navbar {
+    background-color: #ffffff; /* White background */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-brand {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #007bff; /* Primary color */
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-link {
+    color: #343a40;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    transition: background 0.3s ease;
+}
+
+.nav-link:hover {
+    background-color: rgba(0, 123, 255, 0.1); /* Light hover effect */
+}
+
+/* Main Container */
+.main-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+/* Alert Messages */
+.alert {
+    background-color: #ffffff; /* White background */
+    border: 1px solid rgba(0, 123, 255, 0.2); /* Light border */
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    color: #007bff; /* Primary color */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Page Switcher */
+.page-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+
+.switch-btn {
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 25px;
+    background-color: rgba(0, 123, 255, 0.1); /* Light background */
+    color: #007bff; /* Primary color */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.switch-btn.active,
+.switch-btn:hover {
+    background-color: rgba(0, 123, 255, 0.2); /* Darker hover effect */
+}
+
+/* Content Sections */
+.content-section {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.content-section.active {
+    display: block;
+}
+
+/* Dashboard Cards */
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.dashboard-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #343a40; /* Dark text */
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background-color: #ffffff; /* White background */
+    border-radius: 10px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+}
+
+/* Menu Cards */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.menu-card {
+    background-color: #ffffff; /* White background */
+    border-radius: 10px;
+    padding: 2rem;
+    text-decoration: none;
+    color: #343a40; /* Dark text */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    transition: transform 0.3s ease;
+}
+
+.menu-card:hover {
+    transform: translateY(-5px); /* Lift effect on hover */
+}
+
+/* Form Styles */
+.form-container {
+    background-color: #ffffff; /* White background */
+    border-radius: 10px;
+    padding: 3rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #343a40; /* Dark text */
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 2rem;
+}
+
+.form-label {
+    font-weight: bold;
+    color: #343a40; /* Dark text */
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid rgba(0, 123, 255, 0.2); /* Light border */
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #007bff; /* Primary color */
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1); /* Subtle focus effect */
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: #007bff; /* Primary color */
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    color: white; /* White text */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr; /* Single column on small screens */
+    }
+
+    .menu-grid {
+        grid-template-columns: 1fr; /* Single column on small screens */
+    }
+
+    .form-container {
+        padding: 2rem;
+    }
+}
+
+.d-none {
+    display: none;
+}
+
+.d-inline {
+    display: inline;
+}
+
+.min-vh-80 {
+    min-height: 80vh;
+}
+
+.text-truncate-200 {
+    max-width: 200px;
+}
+
+.editor-height {
+    height: 300px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 3px;
+    display: inline-block;
+}
+
+.fc-event {
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.fc-daygrid-event {
+    margin: 1px 0;
+}
+
+.progress-height {
+    height: 25px;
+}
+
+.progress-bar-width {
+    width: var(--progress-width, 0%);
+}
+
+.training-content {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 1rem;
+    background-color: #f8f9fa;
+}
+
+.training-content h1, .training-content h2, .training-content h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.training-content p {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.training-content ul, .training-content ol {
+    margin-bottom: 0.5rem;
+    padding-left: 1.5rem;
+}
+
+.training-content li {
+    font-size: 0.9rem;
+}

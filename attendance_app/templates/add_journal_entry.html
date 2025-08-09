@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Journal Entry{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Add Project Journal Entry</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.project_id.label(class="form-label") }}
+                                    {{ form.project_id(class="form-control") }}
+                                    {% if form.project_id.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.project_id.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.date.label(class="form-label") }}
+                                    {{ form.date(class="form-control", value=moment().format('YYYY-MM-DD')) }}
+                                    {% if form.date.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.date.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.task_type.label(class="form-label") }}
+                                    {{ form.task_type(class="form-control", placeholder="e.g., coding, testing, documentation") }}
+                                    {% if form.task_type.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.task_type.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    {{ form.hours_spent.label(class="form-label") }}
+                                    {{ form.hours_spent(class="form-control", step="0.25", min="0", max="24") }}
+                                    {% if form.hours_spent.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.hours_spent.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    {{ form.object_ids.label(class="form-label") }}
+                                    {{ form.object_ids(class="form-control", placeholder="TASK-101, TASK-102, BUG-205") }}
+                                    {% if form.object_ids.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.object_ids.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="form-text text-muted">{{ form.object_ids.description }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    {{ form.status.label(class="form-label") }}
+                                    {{ form.status(class="form-control") }}
+                                    {% if form.status.errors %}
+                                        <div class="text-danger">
+                                            {% for error in form.status.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.comments.label(class="form-label") }}
+                            {{ form.comments(class="form-control", rows="4", placeholder="Optional: Add any additional notes or comments about the work completed...") }}
+                            {% if form.comments.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.comments.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> If you mark the status as "Error", an automatic alert will be sent to the admin team.
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Save Entry
+                            </button>
+                            <a href="{{ url_for('project_journal') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-save functionality (localStorage)
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    // Load saved data
+    inputs.forEach(input => {
+        const savedValue = localStorage.getItem('journal_' + input.name);
+        if (savedValue && !input.value) {
+            input.value = savedValue;
+        }
+    });
+    
+    // Save data on change
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            localStorage.setItem('journal_' + this.name, this.value);
+        });
+    });
+    
+    // Clear saved data on successful submit
+    form.addEventListener('submit', function() {
+        inputs.forEach(input => {
+            localStorage.removeItem('journal_' + input.name);
+        });
+    });
+    
+    // Set today's date as default
+    const dateInput = document.querySelector('input[name="date"]');
+    if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %}

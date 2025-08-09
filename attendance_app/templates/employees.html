@@ -1,0 +1,28 @@
+<!-- Employee management -->
+{% extends "base.html" %}
+{% block title %}Manage Employees{% endblock %}
+{% block content %}
+<h2>Employees</h2>
+<a href="{{ url_for('add_employee') }}" class="btn btn-success mb-3">Add Employee</a>
+<table class="table table-bordered">
+    <thead>
+        <tr><th>Name</th><th>Email</th><th>Username</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        {% for emp in employees %}
+        <tr>
+            <td>{{ emp.name }}</td>
+            <td>{{ emp.email }}</td>
+            <td>{{ emp.user.username }}</td>
+            <td>
+                <a href="{{ url_for('edit_employee', emp_id=emp.id) }}" class="btn btn-sm btn-warning">Edit</a>
+                <form method="POST" action="{{ url_for('delete_employee', emp_id=emp.id) }}" style="display:inline;">
+                    {{ form.hidden_tag() }}  {# This includes the CSRF token #}
+                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this employee?');">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

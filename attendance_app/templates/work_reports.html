@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}Work Reports{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">My Work Reports</h5>
+                    <a href="{{ url_for('add_work_report') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Report
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if work_reports %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Project</th>
+                                    <th>Hours Worked</th>
+                                    <th>Files Processed</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in work_reports %}
+                                <tr>
+                                    <td>{{ report.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ report.project.name }}</td>
+                                    <td>{{ report.hours_worked or '-' }}</td>
+                                    <td>{{ report.files_processed or '-' }}</td>
+                                    <td>
+                                        <span title="{{ report.description }}">
+                                            {{ report.description[:50] }}{% if report.description|length > 50 %}...{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if report.is_approved else 'warning' }}">
+                                            {{ 'Approved' if report.is_approved else 'Pending' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        {% if not report.is_approved %}
+                                        <button class="btn btn-sm btn-outline-secondary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No work reports found.</p>
+                        <a href="{{ url_for('add_work_report') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Create Your First Report
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

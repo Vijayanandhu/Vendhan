@@ -1,0 +1,538 @@
+{% extends 'base.html' %}
+{% block title %}Employee Dashboard - {{ company_name or 'EMS 2.0' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="welcome-card">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2 class="welcome-title">
+                            Good {{ 'morning' if moment().hour < 12 else 'afternoon' if moment().hour < 18 else 'evening' }}, 
+                            {{ current_user.employee.name if current_user.employee else current_user.username }}!
+                        </h2>
+                        <p class="welcome-subtitle">Ready to make today productive?</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="current-time">
+                            <div class="time-display" id="currentTime"></div>
+                            <div class="date-display">{{ moment().format('dddd, MMMM Do YYYY') }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Row -->
+    <div class="row g-4 mb-4">
+        <!-- Clock In/Out Widget -->
+        <div class="col-lg-4">
+            <div class="card attendance-card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock me-2"></i>Attendance Today
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    {% if today_attendance %}
+                        {% if today_attendance.clock_in and not today_attendance.clock_out %}
+                            <!-- Clocked In -->
+                            <div class="attendance-status status-in">
+                                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                                <h4>Clocked In</h4>
+                                <p class="mb-3">{{ today_attendance.clock_in.strftime('%I:%M %p') }}</p>
+                                <div class="working-time mb-3">
+                                    <span class="time-counter" data-start="{{ today_attendance.clock_in.isoformat() }}">00:00:00</span>
+                                </div>
+                                <form method="POST" action="{{ url_for('clock_out') }}" class="d-inline">
+                                    {{ csrf_token() }}
+                                    <button type="submit" class="btn btn-danger btn-lg">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Clock Out
+                                    </button>
+                                </form>
+                            </div>
+                        {% elif today_attendance.clock_in and today_attendance.clock_out %}
+                            <!-- Completed Day -->
+                            <div class="attendance-status status-complete">
+                                <i class="fas fa-calendar-check fa-3x mb-3"></i>
+                                <h4>Day Completed</h4>
+                                <div class="time-summary">
+                                    <div class="time-item">
+                                        <span class="time-label">Clock In:</span>
+                                        <span class="time-value">{{ today_attendance.clock_in.strftime('%I:%M %p') }}</span>
+                                    </div>
+                                    <div class="time-item">
+                                        <span class="time-label">Clock Out:</span>
+                                        <span class="time-value">{{ today_attendance.clock_out.strftime('%I:%M %p') }}</span>
+                                    </div>
+                                    <div class="time-item total-time">
+                                        <span class="time-label">Total Time:</span>
+                                        {% set duration = today_attendance.clock_out - today_attendance.clock_in %}
+                                        <span class="time-value">{{ duration.total_seconds() // 3600 }}h {{ (duration.total_seconds() % 3600) // 60 }}m</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <!-- Not Clocked In -->
+                        <div class="attendance-status status-out">
+                            <i class="fas fa-clock fa-3x mb-3"></i>
+                            <h4>Ready to Start</h4>
+                            <p class="mb-3">Click below to clock in for today</p>
+                            <form method="POST" action="{{ url_for('clock_in') }}" class="d-inline">
+                                {{ csrf_token() }}
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Clock In
+                                </button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-lg-8">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="stat-card stat-primary">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-week"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ attendance_this_week|default(0) }}</div>
+                            <div class="stat-label">Days This Week</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card stat-success">
+                        <div class="stat-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ recent_reports|length if recent_reports else 0 }}</div>
+                            <div class="stat-label">Recent Reports</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card stat-warning">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-number">{{ pending_leaves|default(0) }}</div>
+                            <div class="stat-label">Pending Leaves</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row g-4">
+        <!-- Recent Work Reports -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>Recent Work Reports
+                    </h5>
+                    <a href="{{ url_for('work_reports') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_reports %}
+                        <div class="list-group list-group-flush">
+                            {% for report in recent_reports[:5] %}
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">{{ report.project.name }}</div>
+                                    <small class="text-muted">
+                                        {{ report.date.strftime('%m/%d/%Y') }}
+                                        {% if report.record_count %}
+                                            • {{ report.record_count }} records
+                                        {% endif %}
+                                        {% if report.hours_worked %}
+                                            • {{ report.hours_worked }}h
+                                        {% endif %}
+                                    </small>
+                                </div>
+                                <span class="badge bg-{{ 'success' if report.is_approved else 'secondary' }} rounded-pill">
+                                    {{ 'Approved' if report.is_approved else 'Pending' }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('add_work_report') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Submit New Report
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-clipboard fa-2x mb-2"></i>
+                            <p>No work reports yet</p>
+                            <a href="{{ url_for('add_work_report') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Submit Your First Report
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Training & Tasks -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-graduation-cap me-2"></i>My Training
+                    </h5>
+                    <a href="{{ url_for('my_training') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if training_assignments %}
+                        <div class="training-progress mb-3">
+                            {% set completed_count = training_assignments|selectattr('is_completed')|list|length %}
+                            {% set total_count = training_assignments|length %}
+                            {% set progress_percentage = (completed_count / total_count * 100)|round|int if total_count > 0 else 0 %}
+                            
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Overall Progress</span>
+                                <span>{{ completed_count }}/{{ total_count }} completed</span>
+                            </div>
+                            <div class="progress mb-3">
+                                <div class="progress-bar bg-success" 
+                                     style="width: {{ progress_percentage }}%"
+                                     aria-valuenow="{{ progress_percentage }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="100">
+                                    {{ progress_percentage }}%
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="list-group list-group-flush">
+                            {% for assignment in training_assignments[:3] %}
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div class="ms-2 me-auto">
+                                    <div class="fw-bold">{{ assignment.module.title }}</div>
+                                    <small class="text-muted">
+                                        Assigned: {{ assignment.assigned_at.strftime('%m/%d/%Y') }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-{{ 'success' if assignment.is_completed else 'warning' }} rounded-pill">
+                                    {{ 'Completed' if assignment.is_completed else 'Pending' }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-graduation-cap fa-2x mb-2"></i>
+                            <p>No training assignments yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('add_work_report') }}" class="quick-action-btn">
+                                <i class="fas fa-clipboard-list"></i>
+                                <span>Submit Report</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('leave_requests') }}" class="quick-action-btn">
+                                <i class="fas fa-calendar-times"></i>
+                                <span>Request Leave</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('my_training') }}" class="quick-action-btn">
+                                <i class="fas fa-graduation-cap"></i>
+                                <span>My Training</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('my_billing') }}" class="quick-action-btn">
+                                <i class="fas fa-dollar-sign"></i>
+                                <span>My Billing</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('calendar') }}" class="quick-action-btn">
+                                <i class="fas fa-calendar"></i>
+                                <span>Calendar</span>
+                            </a>
+                        </div>
+                        <div class="col-lg-2 col-md-4 col-6">
+                            <a href="{{ url_for('messages') }}" class="quick-action-btn">
+                                <i class="fas fa-envelope"></i>
+                                <span>Messages</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.welcome-card {
+    background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+}
+
+.welcome-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-subtitle {
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+.current-time {
+    text-align: right;
+}
+
+.time-display {
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+}
+
+.date-display {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.attendance-card {
+    border-left: 4px solid var(--primary-green);
+}
+
+.attendance-status {
+    padding: 1rem 0;
+}
+
+.status-in {
+    color: var(--success-green);
+}
+
+.status-out {
+    color: var(--medium-gray);
+}
+
+.status-complete {
+    color: var(--primary-green);
+}
+
+.time-counter {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: 'Courier New', monospace;
+    color: var(--primary-green);
+}
+
+.time-summary {
+    text-align: left;
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.time-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--light-green);
+}
+
+.time-item.total-time {
+    border-bottom: none;
+    font-weight: 600;
+    color: var(--primary-green);
+}
+
+.time-label {
+    color: var(--medium-gray);
+}
+
+.stat-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    border-left: 4px solid;
+    transition: var(--transition);
+    height: 100%;
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.stat-primary { border-left-color: var(--primary-green); }
+.stat-success { border-left-color: var(--success-green); }
+.stat-warning { border-left-color: #ffc107; }
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+    margin: 0 auto 1rem;
+}
+
+.stat-primary .stat-icon { background: var(--primary-green); }
+.stat-success .stat-icon { background: var(--success-green); }
+.stat-warning .stat-icon { background: #ffc107; }
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-green);
+    line-height: 1;
+}
+
+.stat-label {
+    font-weight: 600;
+    color: var(--dark-gray);
+    font-size: 0.875rem;
+}
+
+.training-progress {
+    background: var(--light-green);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+}
+
+.quick-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    background: white;
+    border: 2px solid var(--light-green);
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    color: var(--primary-green);
+    transition: var(--transition);
+    height: 100%;
+}
+
+.quick-action-btn:hover {
+    background: var(--primary-green);
+    color: white;
+    border-color: var(--primary-green);
+    transform: translateY(-2px);
+}
+
+.quick-action-btn i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.quick-action-btn span {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .welcome-title {
+        font-size: 1.5rem;
+    }
+    
+    .time-display {
+        font-size: 1.5rem;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .quick-action-btn {
+        padding: 1rem 0.5rem;
+    }
+    
+    .quick-action-btn i {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Update current time
+function updateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', {
+        hour12: true,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+    document.getElementById('currentTime').textContent = timeString;
+}
+
+// Update working time counter
+function updateWorkingTime() {
+    const counter = document.querySelector('.time-counter');
+    if (counter) {
+        const startTime = new Date(counter.dataset.start);
+        const now = new Date();
+        const diff = now - startTime;
+        
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        counter.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateTime();
+    updateWorkingTime();
+    
+    // Update every second
+    setInterval(updateTime, 1000);
+    setInterval(updateWorkingTime, 1000);
+});
+</script>
+{% endblock %}

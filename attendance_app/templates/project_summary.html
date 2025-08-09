@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Project Summary</h3>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Project Name</th>
+      <th>File Count</th>
+      <th>Record Count</th>
+      <th>Number of Employees</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in summary %}
+    <tr>
+      <td>{{ item.project.name }}</td>
+      <td>{{ item.project.file_count }}</td>
+      <td>{{ item.project.record_count }}</td>
+      <td>{{ item.employee_count }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

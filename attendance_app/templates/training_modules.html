@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}Training Modules{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Training Modules</h5>
+                    <button class="btn btn-primary">Add Module</button>
+                </div>
+                <div class="card-body">
+                    {% if modules %}
+                    <div class="row">
+                        {% for module in modules %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ module.title }}</h6>
+                                    <p class="card-text">{{ module.content[:100] }}...</p>
+                                    <div class="mb-2">
+                                        <span class="badge bg-{{ 'success' if module.is_active else 'secondary' }}">
+                                            {{ 'Active' if module.is_active else 'Inactive' }}
+                                        </span>
+                                        <span class="badge bg-info">{{ module.target_audience.replace('_', ' ').title() }}</span>
+                                    </div>
+                                    <small class="text-muted">Created: {{ module.created_at.strftime('%Y-%m-%d') }}</small>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-outline-primary">Edit</button>
+                                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No training modules found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

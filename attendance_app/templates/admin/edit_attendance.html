@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Edit Attendance Record - {{ company_name or 'EMS 2.0' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Edit Attendance Record
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        {{ csrf_token() }}
+                        
+                        <!-- Employee Info (Read-only) -->
+                        <div class="mb-3">
+                            <label class="form-label">Employee</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   value="{{ attendance.employee.name }}"
+                                   readonly>
+                        </div>
+
+                        <!-- Date -->
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Date *</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="date" 
+                                   name="date"
+                                   value="{{ attendance.date.strftime('%Y-%m-%d') if attendance.date else '' }}"
+                                   required>
+                            <div class="invalid-feedback">
+                                Please provide a valid date.
+                            </div>
+                        </div>
+
+                        <!-- Clock In Time -->
+                        <div class="mb-3">
+                            <label for="clock_in_time" class="form-label">Clock In Time</label>
+                            <input type="time" 
+                                   class="form-control" 
+                                   id="clock_in_time" 
+                                   name="clock_in_time"
+                                   value="{{ attendance.clock_in.strftime('%H:%M') if attendance.clock_in else '' }}">
+                            <div class="form-text">Leave empty if employee didn't clock in</div>
+                        </div>
+
+                        <!-- Clock Out Time -->
+                        <div class="mb-3">
+                            <label for="clock_out_time" class="form-label">Clock Out Time</label>
+                            <input type="time" 
+                                   class="form-control" 
+                                   id="clock_out_time" 
+                                   name="clock_out_time"
+                                   value="{{ attendance.clock_out.strftime('%H:%M') if attendance.clock_out else '' }}">
+                            <div class="form-text">Leave empty if employee didn't clock out</div>
+                        </div>
+
+                        <!-- Duration Display -->
+                        {% if attendance.clock_in and attendance.clock_out %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-clock me-2"></i>
+                            <strong>Current Duration:</strong> 
+                            {% set duration = attendance.clock_out - attendance.clock_in %}
+                            {{ duration.total_seconds() // 3600 }}h {{ (duration.total_seconds() % 3600) // 60 }}m
+                        </div>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('view_attendance') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Attendance
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Record
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Bootstrap form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+    
+    // Calculate duration when times change
+    const clockInInput = document.getElementById('clock_in_time');
+    const clockOutInput = document.getElementById('clock_out_time');
+    
+    function calculateDuration() {
+        const clockIn = clockInInput.value;
+        const clockOut = clockOutInput.value;
+        
+        if (clockIn && clockOut) {
+            const inTime = new Date(`2000-01-01 ${clockIn}`);
+            const outTime = new Date(`2000-01-01 ${clockOut}`);
+            
+            if (outTime > inTime) {
+                const diff = outTime - inTime;
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                
+                // Show duration info
+                let durationInfo = document.getElementById('duration-info');
+                if (!durationInfo) {
+                    durationInfo = document.createElement('div');
+                    durationInfo.id = 'duration-info';
+                    durationInfo.className = 'alert alert-success mt-2';
+                    clockOutInput.parentNode.appendChild(durationInfo);
+                }
+                durationInfo.innerHTML = `<i class="fas fa-clock me-2"></i><strong>Duration:</strong> ${hours}h ${minutes}m`;
+            }
+        }
+    }
+    
+    clockInInput.addEventListener('change', calculateDuration);
+    clockOutInput.addEventListener('change', calculateDuration);
+});
+</script>
+{% endblock %}

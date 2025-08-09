@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Billing Management - {{ company_name or 'EMS 2.0' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary-green">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>Billing Management
+                </h2>
+                <div>
+                    <a href="{{ url_for('billing_calculate') }}" class="btn btn-primary">
+                        <i class="fas fa-calculator me-2"></i>Calculate New Billing
+                    </a>
+                    <a href="{{ url_for('export_billing_records') }}" class="btn btn-success">
+                        <i class="fas fa-download me-2"></i>Export All to CSV
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Billing History
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Record ID</th>
+                                    <th>Employee</th>
+                                    <th>Project</th>
+                                    <th>Period</th>
+                                    <th>Amount</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Finalized At</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in records %}
+                                <tr>
+                                    <td><code>BR-{{ record.id }}</code></td>
+                                    <td>{{ record.employee.name }}</td>
+                                    <td>{{ record.project.name }}</td>
+                                    <td>{{ record.period_start.strftime('%Y-%m-%d') }} to {{ record.period_end.strftime('%Y-%m-%d') }}</td>
+                                    <td>${{ "%.2f"|format(record.total_amount) }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'info' if record.billing_type == 'hourly' else 'secondary' }}">
+                                            {{ record.billing_type|replace('_', ' ')|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if record.status == 'paid' else 'warning' if record.status == 'finalized' else 'secondary' }}">
+                                            {{ record.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>{{ record.finalized_at.strftime('%Y-%m-%d %H:%M') if record.finalized_at else 'N/A' }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center">No billing records found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

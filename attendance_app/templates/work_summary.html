@@ -1,0 +1,31 @@
+
+
+{% extends "base.html" %}
+{% block title %}Work Summary{% endblock %}
+{% block content %}
+<h2>Work Summary</h2>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Employee</th>
+            <th>Project</th>
+            <th>Date</th>
+            <th>Files</th>
+            <th>Records</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for report in reports %}
+        <tr>
+            <td>{{ report.employee.name }}</td>
+            <td>{{ report.project.name }}</td>
+            <td>{{ report.date }}</td>
+            <td>{{ report.num_files }}</td>
+            <td>{{ report.num_records }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+"""
+}

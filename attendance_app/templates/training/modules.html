@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Training Modules - {{ company_name or 'EMS 2.0' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-primary-green">
+                    <i class="fas fa-graduation-cap me-2"></i>Training Modules
+                </h2>
+                <a href="{{ url_for('add_training_module') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Module
+                </a>
+            </div>
+
+            {% if modules %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>All Training Modules
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Target Audience</th>
+                                    <th>Created By</th>
+                                    <th>Created Date</th>
+                                    <th>Assignments</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for module in modules %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ module.title }}</strong>
+                                        {% if module.content|length > 100 %}
+                                        <br><small class="text-muted">{{ module.content[:100] }}...</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if module.target_audience == 'new_employee' %}
+                                            <span class="badge bg-primary">New Employee</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Project Specific</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ module.creator.username }}</td>
+                                    <td>{{ module.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ module.assignments|length }} assigned</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('edit_training_module', module_id=module.id) }}" 
+                                               class="btn btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-outline-danger"
+                                                    onclick="confirmDelete('{{ module.id }}', '{{ module.title }}')"
+                                                    title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-graduation-cap fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Training Modules Yet</h4>
+                    <p class="text-muted">Create your first training module to get started with employee onboarding.</p>
+                    <a href="{{ url_for('add_training_module') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Create First Module
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the training module "<span id="moduleTitle"></span>"?</p>
+                <p class="text-danger"><small>This action cannot be undone and will remove all associated assignments.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="POST" class="d-inline">
+                    {{ csrf_token() }}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(moduleId, moduleTitle) {
+    document.getElementById('moduleTitle').textContent = moduleTitle;
+    document.getElementById('deleteForm').action = `/training/module/delete/${moduleId}`;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %}

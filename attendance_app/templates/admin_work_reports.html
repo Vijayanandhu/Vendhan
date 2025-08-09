@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}Work Reports Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>Work Reports Filters
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" 
+                                   value="{{ request.args.get('start_date', '') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" 
+                                   value="{{ request.args.get('end_date', '') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="employee_id" class="form-label">Employee</label>
+                            <select class="form-control" id="employee_id" name="employee_id">
+                                <option value="">All Employees</option>
+                                {% for employee in employees %}
+                                <option value="{{ employee.id }}" 
+                                        {{ 'selected' if request.args.get('employee_id') == employee.id|string }}>
+                                    {{ employee.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="project_id" class="form-label">Project</label>
+                            <select class="form-control" id="project_id" name="project_id">
+                                <option value="">All Projects</option>
+                                {% for project in projects %}
+                                <option value="{{ project.id }}" 
+                                        {{ 'selected' if request.args.get('project_id') == project.id|string }}>
+                                    {{ project.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-1"></i>Filter
+                            </button>
+                            <a href="{{ url_for('admin_work_reports') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Work Reports Management
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if work_reports %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Employee</th>
+                                    <th>Project</th>
+                                    <th>Hours</th>
+                                    <th>Files</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in work_reports %}
+                                <tr>
+                                    <td>{{ report.date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if report.employee.profile_picture %}
+                                            <img src="{{ url_for('static', filename='uploads/' + report.employee.profile_picture) }}" 
+                                                 alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px;">
+                                            {% else %}
+                                            <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                                 style="width: 32px; height: 32px;">
+                                                <i class="fas fa-user text-white"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold">{{ report.employee.name }}</div>
+                                                <small class="text-muted">{{ report.employee.department or 'N/A' }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <div class="fw-bold">{{ report.project.name }}</div>
+                                            <small class="text-muted">{{ report.project.billing_type.title() }} - ${{ report.project.billing_rate or 0 }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if report.hours_worked %}
+                                        <span class="badge bg-primary">{{ report.hours_worked }}h</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if report.files_processed %}
+                                        <span class="badge bg-info">{{ report.files_processed }} files</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span title="{{ report.description }}">
+                                            {{ report.description[:50] }}{% if report.description|length > 50 %}...{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if report.is_approved else 'warning' }}">
+                                            {{ 'Approved' if report.is_approved else 'Pending' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if not report.is_approved %}
+                                        <a href="{{ url_for('approve_work_report', report_id=report.id) }}" 
+                                           class="btn btn-sm btn-success" 
+                                           onclick="return confirm('Approve this work report?')">
+                                            <i class="fas fa-check"></i> Approve
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">
+                                            Approved
+                                            {% if report.approved_at %}
+                                            <br><small>{{ report.approved_at.strftime('%Y-%m-%d') }}</small>
+                                            {% endif %}
+                                        </span>
+                                        {% endif %}
+                                        <a href="{{ url_for('edit_work_report', report_id=report.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Summary Statistics -->
+                    <div class="row mt-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ work_reports|length }}</h5>
+                                    <p class="mb-0">Total Reports</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ work_reports|selectattr('is_approved')|list|length }}</h5>
+                                    <p class="mb-0">Approved</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ work_reports|rejectattr('is_approved')|list|length }}</h5>
+                                    <p class="mb-0">Pending</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ work_reports|sum(attribute='hours_worked') or 0 }}h</h5>
+                                    <p class="mb-0">Total Hours</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No work reports found.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

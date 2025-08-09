@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Employee Dashboard{% endblock %}
+{% block content %}
+<h2>Employee Dashboard</h2>
+<ul class="list-group">
+  <li class="list-group-item"><a href="{{ url_for('view_attendance') }}">Clock In/Out</a></li>
+  <li class="list-group-item"><a href="{{ url_for('clock_in') }}">Clock In</a></li>
+  <li class="list-group-item"><a href="{{ url_for('clock_out') }}">Clock Out</a></li>
+  <li class="list-group-item"><a href="{{ url_for('view_attendance') }}">View Attendance</a></li>
+  <li class="list-group-item"><a href="{{ url_for('leave_requests') }}">Apply for Leave</a></li>
+  <li class="list-group-item"><a href="{{ url_for('work_reports') }}">Submit Work Report</a></li>
+</ul>
+{% endblock %}

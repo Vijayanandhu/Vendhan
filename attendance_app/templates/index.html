@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+{% block title %}Welcome to EMS 2.0{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block content %}
+<div class="welcome-page">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="row align-items-center min-vh-100">
+        <div class="col-lg-6">
+          <div class="hero-content">
+            <h1 class="hero-title">
+              Welcome to <span class="text-primary-green">EMS 2.0</span>
+            </h1>
+            <p class="hero-subtitle">
+              The complete Employee Management System designed to streamline your workforce operations, 
+              from attendance tracking to project management and everything in between.
+            </p>
+            <div class="hero-actions">
+              <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-sign-in-alt me-2"></i>Get Started
+              </a>
+              <a href="#features" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-info-circle me-2"></i>Learn More
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="hero-image">
+            <div class="dashboard-preview">
+              <div class="preview-header">
+                <div class="preview-dots">
+                  <span></span><span></span><span></span>
+                </div>
+                <span class="preview-title">EMS 2.0 Dashboard</span>
+              </div>
+              <div class="preview-content">
+                <div class="preview-stats">
+                  <div class="stat-item">
+                    <div class="stat-number">24</div>
+                    <div class="stat-label">Employees</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-number">18</div>
+                    <div class="stat-label">Present Today</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Active Projects</div>
+                  </div>
+                </div>
+                <div class="preview-chart"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features-section py-5">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="section-title">Powerful Features for Modern Workplaces</h2>
+        <p class="section-subtitle">Everything you need to manage your team effectively</p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-clock"></i>
+            </div>
+            <h4>Smart Attendance Tracking</h4>
+            <p>Digital clock-in/out with real-time monitoring and automated reporting.</p>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h4>Training & Onboarding</h4>
+            <p>Structured training modules with progress tracking for new employees and projects.</p>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-project-diagram"></i>
+            </div>
+            <h4>Project Management</h4>
+            <p>Complete project lifecycle management with detailed reporting and analytics.</p>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h4>Integrated Calendar</h4>
+            <p>Centralized calendar for events, holidays, leave requests, and project timelines.</p>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <h4>Billing & Payroll</h4>
+            <p>Automated billing calculations with support for hourly and count-based projects.</p>
+          </div>
+        </div>
+        
+        <div class="col-lg-4 col-md-6">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-comments"></i>
+            </div>
+            <h4>Internal Messaging</h4>
+            <p>Secure communication system with file attachments and broadcast capabilities.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="benefits-section py-5">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <div class="benefits-content">
+            <h2 class="section-title">Why Choose EMS 2.0?</h2>
+            <div class="benefit-item">
+              <div class="benefit-icon">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="benefit-text">
+                <h5>Improved Efficiency</h5>
+                <p>Automate manual processes and reduce administrative overhead by up to 60%.</p>
+              </div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon">
+                <i class="fas fa-eye"></i>
+              </div>
+              <div class="benefit-text">
+                <h5>Enhanced Transparency</h5>
+                <p>Real-time visibility into all aspects of your workforce operations.</p>
+              </div>
+            </div>
+            <div class="benefit-item">
+              <div class="benefit-icon">
+                <i class="fas fa-users"></i>
+              </div>
+              <div class="benefit-text">
+                <h5>Better Employee Experience</h5>
+                <p>Modern, intuitive interface that employees actually enjoy using.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="benefits-stats">
+            <div class="stat-card">
+              <div class="stat-number">99.9%</div>
+              <div class="stat-label">Uptime Reliability</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">60%</div>
+              <div class="stat-label">Time Savings</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">24/7</div>
+              <div class="stat-label">Support Available</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section py-5">
+    <div class="container">
+      <div class="text-center">
+        <h2 class="cta-title">Ready to Transform Your Workplace?</h2>
+        <p class="cta-subtitle">Join thousands of companies already using EMS 2.0 to streamline their operations.</p>
+        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+          <i class="fas fa-rocket me-2"></i>Start Your Journey
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.welcome-page {
+  background: linear-gradient(135deg, var(--light-green) 0%, var(--white) 100%);
+}
+
+.hero-section {
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.hero-actions {
+  margin-top: 2rem;
+}
+
+.dashboard-preview {
+  background: var(--white);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
+  transition: transform 0.3s ease;
+}
+
+.dashboard-preview:hover {
+  transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+}
+
+.preview-header {
+  background: var(--primary-green);
+  color: var(--white);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.preview-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.preview-dots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.preview-content {
+  padding: 2rem;
+}
+
+.preview-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1rem;
+  background: var(--light-green);
+  border-radius: 8px;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-green);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--medium-gray);
+}
+
+.preview-chart {
+  height: 100px;
+  background: linear-gradient(45deg, var(--accent-green) 0%, var(--primary-green-light) 100%);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.preview-chart::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  background: linear-gradient(to right, 
+    transparent 0%, 
+    rgba(255,255,255,0.2) 20%, 
+    rgba(255,255,255,0.4) 40%, 
+    rgba(255,255,255,0.2) 60%, 
+    transparent 80%);
+}
+
+.features-section {
+  background: var(--white);
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-green);
+  margin-bottom: 1rem;
+}
+
+.section-subtitle {
+  font-size: 1.125rem;
+  color: var(--medium-gray);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: var(--white);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  text-align: center;
+  transition: var(--transition);
+  height: 100%;
+  border-left: 4px solid var(--primary-green);
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(45, 90, 39, 0.15);
+}
+
+.feature-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: var(--white);
+  font-size: 2rem;
+}
+
+.feature-card h4 {
+  color: var(--primary-green);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.feature-card p {
+  color: var(--medium-gray);
+  line-height: 1.6;
+}
+
+.benefits-section {
+  background: var(--light-green);
+}
+
+.benefit-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.benefit-icon {
+  width: 60px;
+  height: 60px;
+  background: var(--primary-green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  font-size: 1.5rem;
+  margin-right: 1.5rem;
+  flex-shrink: 0;
+}
+
+.benefit-text h5 {
+  color: var(--primary-green);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.benefit-text p {
+  color: var(--medium-gray);
+  margin-bottom: 0;
+}
+
+.benefits-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+}
+
+.benefits-stats .stat-card {
+  background: var(--white);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  text-align: center;
+  border-left: 4px solid var(--success-green);
+}
+
+.cta-section {
+  background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
+  color: var(--white);
+}
+
+.cta-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.cta-subtitle {
+  font-size: 1.125rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .dashboard-preview {
+    transform: none;
+    margin-top: 3rem;
+  }
+  
+  .preview-stats {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}

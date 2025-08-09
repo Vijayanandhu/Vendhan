@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}My Training{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">My Training Assignments</h5>
+                </div>
+                <div class="card-body">
+                    {% if training_assignments %}
+                    <div class="row">
+                        {% for assignment in training_assignments %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ assignment.module.title }}</h6>
+                                    <p class="card-text">{{ assignment.module.content[:100] }}...</p>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Assigned: {{ assignment.assigned_at.strftime('%Y-%m-%d') }}</small>
+                                    </div>
+                                    {% if assignment.is_completed %}
+                                        <span class="badge bg-success">Completed</span>
+                                        <small class="text-muted d-block">Completed: {{ assignment.completed_at.strftime('%Y-%m-%d') }}</small>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        <button class="btn btn-sm btn-primary mt-2">Mark Complete</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No training assignments found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

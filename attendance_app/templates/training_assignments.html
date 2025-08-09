@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Training Assignments{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Training Assignments</h5>
+                    <button class="btn btn-primary">New Assignment</button>
+                </div>
+                <div class="card-body">
+                    {% if assignments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Module</th>
+                                    <th>Assigned Date</th>
+                                    <th>Status</th>
+                                    <th>Completed Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in assignments %}
+                                <tr>
+                                    <td>{{ assignment.employee.name }}</td>
+                                    <td>{{ assignment.module.title }}</td>
+                                    <td>{{ assignment.assigned_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if assignment.is_completed else 'warning' }}">
+                                            {{ 'Completed' if assignment.is_completed else 'Pending' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if assignment.completed_at %}
+                                            {{ assignment.completed_at.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if not assignment.is_completed %}
+                                        <button class="btn btn-sm btn-success">Mark Complete</button>
+                                        {% endif %}
+                                        <button class="btn btn-sm btn-outline-danger">Remove</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No training assignments found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

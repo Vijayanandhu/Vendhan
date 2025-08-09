@@ -1,0 +1,558 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Edit Project' if project else 'Add New Project' }} - {{ company_name or 'EMS 2.0' }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{{ 'edit' if project else 'plus' }} me-2"></i>
+                        {{ 'Edit Project' if project else 'Add New Project' }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        {{ csrf_token() }}
+                        
+                        <!-- Project Basic Information -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary-green mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                                </h5>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Project Name *</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="name" 
+                                       name="name"
+                                       value="{{ project.name if project else '' }}"
+                                       required>
+                                <div class="invalid-feedback">
+                                    Please provide a valid project name.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="status" class="form-label">Status *</label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="active" {{ 'selected' if project and project.status == 'active' else '' }}>Active</option>
+                                    <option value="completed" {{ 'selected' if project and project.status == 'completed' else '' }}>Completed</option>
+                                    <option value="on_hold" {{ 'selected' if project and project.status == 'on_hold' else '' }}>On Hold</option>
+                                    <option value="cancelled" {{ 'selected' if project and project.status == 'cancelled' else '' }}>Cancelled</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a project status.
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" 
+                                          id="description" 
+                                          name="description" 
+                                          rows="3"
+                                          placeholder="Enter project description...">{{ project.description if project else '' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Project Timeline -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary-green mb-3">
+                                    <i class="fas fa-calendar me-2"></i>Timeline
+                                </h5>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="start_date" class="form-label">Start Date</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="start_date" 
+                                       name="start_date"
+                                       value="{{ project.start_date.strftime('%Y-%m-%d') if project and project.start_date else '' }}">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="end_date" class="form-label">End Date</label>
+                                <input type="date" 
+                                       class="form-control" 
+                                       id="end_date" 
+                                       name="end_date"
+                                       value="{{ project.end_date.strftime('%Y-%m-%d') if project and project.end_date else '' }}">
+                            </div>
+                        </div>
+
+                        <!-- Project Metrics -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary-green mb-3">
+                                    <i class="fas fa-chart-bar me-2"></i>Project Metrics
+                                </h5>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="file_count" class="form-label">Expected File Count</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="file_count" 
+                                       name="file_count"
+                                       min="0"
+                                       value="{{ project.file_count if project else '' }}"
+                                       placeholder="0">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="record_count" class="form-label">Expected Record Count</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="record_count" 
+                                       name="record_count"
+                                       min="0"
+                                       value="{{ project.record_count if project else '' }}"
+                                       placeholder="0">
+                            </div>
+                        </div>
+
+                        <!-- Billing Configuration -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary-green mb-3">
+                                    <i class="fas fa-calculator me-2"></i>Billing Configuration
+                                </h5>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="billing_method" class="form-label">Billing Method *</label>
+                                <select class="form-select" id="billing_method" name="billing_method" required>
+                                    <option value="hourly" {{ 'selected' if project and project.billing_method == 'hourly' else '' }}>Hourly Rate</option>
+                                    <option value="record_count" {{ 'selected' if project and project.billing_method == 'record_count' else '' }}>Per Record Count</option>
+                                    <option value="character_count" {{ 'selected' if project and project.billing_method == 'character_count' else '' }}>Per Character Count</option>
+                                    <option value="task_completion" {{ 'selected' if project and project.billing_method == 'task_completion' else '' }}>Per Task Completion</option>
+                                    <option value="custom_formula" {{ 'selected' if project and project.billing_method == 'custom_formula' else '' }}>Custom Formula</option>
+                                </select>
+                                <div class="invalid-feedback">
+                                    Please select a billing method.
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="billing_rate" class="form-label">Billing Rate ($)</label>
+                                <input type="number" 
+                                       class="form-control" 
+                                       id="billing_rate" 
+                                       name="billing_rate"
+                                       step="0.01"
+                                       min="0"
+                                       value="{{ project.billing_rate if project else '' }}"
+                                       placeholder="0.00">
+                                <div class="form-text">Rate per unit based on selected billing method</div>
+                            </div>
+                            
+                            <div class="col-12" id="formula-section" style="display: none;">
+                                <label for="billing_formula" class="form-label">Custom Billing Formula</label>
+                                <textarea class="form-control" 
+                                          id="billing_formula" 
+                                          name="billing_formula" 
+                                          rows="3"
+                                          placeholder="Example: (record_count/1000)*4.85">{{ project.billing_formula if project else '' }}</textarea>
+                                <div class="form-text">
+                                    <strong>Available variables:</strong> 
+                                    <code>record_count</code>, <code>character_count</code>, <code>hours_worked</code>, <code>tasks_completed</code>
+                                    <br>
+                                    <strong>Example:</strong> <code>(record_count/1000)*4.85</code> - $4.85 per 1000 records
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Billing Method Examples -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-lightbulb me-2"></i>Billing Method Examples:</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Hourly Rate:</strong> $25.00 per hour worked</li>
+                                        <li><strong>Per Record Count:</strong> $0.05 per record processed</li>
+                                        <li><strong>Per Character Count:</strong> $0.001 per character typed</li>
+                                        <li><strong>Per Task Completion:</strong> $10.00 per task completed</li>
+                                        <li><strong>Custom Formula:</strong> Complex calculations like <code>(record_count/1000)*4.85</code></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('projects') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Projects
+                            </a>
+                            <div>
+                                {% if project %}
+                                <button type="button" class="btn btn-danger me-2" onclick="confirmDelete()">
+                                    <i class="fas fa-trash me-2"></i>Delete Project
+                                </button>
+                                {% endif %}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>{{ 'Update Project' if project else 'Create Project' }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+{% if project %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the project <strong>"{{ project.name }}"</strong>?</p>
+                <p class="text-danger"><i class="fas fa-exclamation-triangle me-2"></i>This action cannot be undone and will affect all related work reports and billing records.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('delete_project', project_id=project.id) }}" class="d-inline">
+                    {{ csrf_token() }}
+                    <button type="submit" class="btn btn-danger">Delete Project</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.billing-method-info {
+    background: var(--light-green);
+    border-left: 4px solid var(--primary-green);
+    padding: 1rem;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    margin-top: 1rem;
+}
+
+.formula-preview {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: var(--border-radius);
+    padding: 0.75rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+}
+
+.variable-tag {
+    background: var(--primary-green);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin: 0.125rem;
+    display: inline-block;
+}
+
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .row.g-3 {
+        margin: 0 -0.5rem;
+    }
+    
+    .row.g-3 > * {
+        padding: 0 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Bootstrap form validation
+document.addEventListener('DOMContentLoaded', function() {
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+    
+    // Billing method change handler
+    const billingMethodSelect = document.getElementById('billing_method');
+    const formulaSection = document.getElementById('formula-section');
+    const billingRateInput = document.getElementById('billing_rate');
+    
+    function toggleFormulaSection() {
+        if (billingMethodSelect.value === 'custom_formula') {
+            formulaSection.style.display = 'block';
+            billingRateInput.required = false;
+        } else {
+            formulaSection.style.display = 'none';
+            billingRateInput.required = true;
+        }
+    }
+    
+    billingMethodSelect.addEventListener('change', toggleFormulaSection);
+    
+    // Initialize on page load
+    toggleFormulaSection();
+    
+    // Date validation
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    function validateDates() {
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+        
+        if (startDateInput.value && endDateInput.value && endDate < startDate) {
+            endDateInput.setCustomValidity('End date must be after start date');
+        } else {
+            endDateInput.setCustomValidity('');
+        }
+    }
+    
+    startDateInput.addEventListener('change', validateDates);
+    endDateInput.addEventListener('change', validateDates);
+});
+
+function confirmDelete() {
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+// Formula helper
+function insertVariable(variable) {
+    const formulaTextarea = document.getElementById('billing_formula');
+    const cursorPos = formulaTextarea.selectionStart;
+    const textBefore = formulaTextarea.value.substring(0, cursorPos);
+    const textAfter = formulaTextarea.value.substring(cursorPos);
+    
+    formulaTextarea.value = textBefore + variable + textAfter;
+    formulaTextarea.focus();
+    formulaTextarea.setSelectionRange(cursorPos + variable.length, cursorPos + variable.length);
+}
+</script>
+{% endblock %}
+                                        <option value="on_hold" {{ 'selected' if project and project.status == 'on_hold' else '' }}>On Hold</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" 
+                                      id="description" 
+                                      name="description" 
+                                      rows="3">{{ project.description if project else '' }}</textarea>
+                        </div>
+
+                        <!-- Project Timeline -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="start_date" class="form-label">Start Date</label>
+                                    <input type="date" 
+                                           class="form-control" 
+                                           id="start_date" 
+                                           name="start_date"
+                                           value="{{ project.start_date.strftime('%Y-%m-%d') if project and project.start_date else '' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="end_date" class="form-label">End Date</label>
+                                    <input type="date" 
+                                           class="form-control" 
+                                           id="end_date" 
+                                           name="end_date"
+                                           value="{{ project.end_date.strftime('%Y-%m-%d') if project and project.end_date else '' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Billing Configuration -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-calculator me-2"></i>Billing Configuration
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="billing_method" class="form-label">Billing Method *</label>
+                                            <select class="form-select" id="billing_method" name="billing_method" required onchange="updateBillingFields()">
+                                                <option value="record_count" {{ 'selected' if project and project.billing_method == 'record_count' else '' }}>Record Count Based</option>
+                                                <option value="character_count" {{ 'selected' if project and project.billing_method == 'character_count' else '' }}>Character Count Based</option>
+                                                <option value="hourly" {{ 'selected' if project and project.billing_method == 'hourly' else '' }}>Hourly Rate</option>
+                                                <option value="task_completion" {{ 'selected' if project and project.billing_method == 'task_completion' else '' }}>Task Completion</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="billing_rate" class="form-label">Base Rate</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" 
+                                                       class="form-control" 
+                                                       id="billing_rate" 
+                                                       name="billing_rate" 
+                                                       step="0.01"
+                                                       min="0"
+                                                       value="{{ project.billing_rate if project else '0.00' }}">
+                                            </div>
+                                            <div class="form-text">Base rate for calculations</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="billing_formula" class="form-label">Custom Formula</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="billing_formula" 
+                                           name="billing_formula"
+                                           value="{{ project.billing_formula if project else '' }}"
+                                           placeholder="e.g., (record_count/1000)*4.85">
+                                    <div class="form-text">
+                                        Custom formula for complex billing calculations. Use variables: 
+                                        <code>record_count</code>, <code>character_count</code>, <code>hours_worked</code>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="billing_unit" class="form-label">Billing Unit</label>
+                                            <input type="text" 
+                                                   class="form-control" 
+                                                   id="billing_unit" 
+                                                   name="billing_unit"
+                                                   value="{{ project.billing_unit if project else 'record' }}"
+                                                   placeholder="e.g., record, character, hour, task">
+                                            <div class="form-text">Unit of measurement for billing</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Billing Examples -->
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-lightbulb me-2"></i>Billing Formula Examples:</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Record Count:</strong> <code>(record_count/1000)*4.85</code> - $4.85 per 1000 records</li>
+                                        <li><strong>Character Count:</strong> <code>(character_count/10000)*2.50</code> - $2.50 per 10,000 characters</li>
+                                        <li><strong>Hourly with Bonus:</strong> <code>hours_worked*15 + (hours_worked>8)*(hours_worked-8)*5</code> - $15/hr + $5 overtime</li>
+                                        <li><strong>Task Based:</strong> <code>tasks_completed*25</code> - $25 per completed task</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project Metrics (Optional) -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="file_count" class="form-label">Expected File Count</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="file_count" 
+                                           name="file_count" 
+                                           min="0"
+                                           value="{{ project.file_count if project else '0' }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="record_count" class="form-label">Expected Record Count</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="record_count" 
+                                           name="record_count" 
+                                           min="0"
+                                           value="{{ project.record_count if project else '0' }}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('projects') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Projects
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>{{ 'Update' if project else 'Create' }} Project
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateBillingFields() {
+    const method = document.getElementById('billing_method').value;
+    const formulaField = document.getElementById('billing_formula');
+    const unitField = document.getElementById('billing_unit');
+    
+    // Update placeholder and default values based on billing method
+    switch(method) {
+        case 'record_count':
+            formulaField.placeholder = '(record_count/1000)*4.85';
+            unitField.value = 'record';
+            break;
+        case 'character_count':
+            formulaField.placeholder = '(character_count/10000)*2.50';
+            unitField.value = 'character';
+            break;
+        case 'hourly':
+            formulaField.placeholder = 'hours_worked*15';
+            unitField.value = 'hour';
+            break;
+        case 'task_completion':
+            formulaField.placeholder = 'tasks_completed*25';
+            unitField.value = 'task';
+            break;
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateBillingFields();
+    
+    // Bootstrap form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+});
+</script>
+{% endblock %}
