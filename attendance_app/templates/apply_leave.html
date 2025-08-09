@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Apply for Leave</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="mb-3">{{ form.leave_type.label }} {{ form.leave_type(class="form-control") }}</div>
+        <div class="mb-3">{{ form.start_date.label }} {{ form.start_date(class="form-control") }}</div>
+        <div class="mb-3">{{ form.end_date.label }} {{ form.end_date(class="form-control") }}</div>
+        <div class="mb-3">{{ form.reason.label }} {{ form.reason(class="form-control") }}</div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <a href="{{ url_for('leave_requests') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

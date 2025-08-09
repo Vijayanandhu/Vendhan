@@ -89,7 +89,7 @@
                     <div class="metric-sublabel">{{ pending_reports|default(0) }} pending review</div>
                 </div>
                 <div class="metric-action">
-                    <a href="{{ url_for('admin_work_reports') }}" class="btn btn-sm btn-outline-info">
+                    <a href="{{ url_for('admin_work_reports_view') }}" class="btn btn-sm btn-outline-info">
                         <i class="fas fa-list me-1"></i>View All
                     </a>
                 </div>
@@ -200,7 +200,7 @@
                     <h5 class="card-title mb-0">
                         <i class="fas fa-clipboard-list me-2"></i>Recent Work Reports
                     </h5>
-                    <a href="{{ url_for('admin_work_reports') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{{ url_for('admin_work_reports_view') }}" class="btn btn-sm btn-outline-primary">View All</a>
                 </div>
                 <div class="card-body">
                     {% if recent_work_reports %}
@@ -472,9 +472,9 @@
 // Attendance Trend Chart
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('attendanceChart').getContext('2d');
-    
-    const attendanceData = {{ attendance_trend|tojson if attendance_trend else '[]' }};
-    
+    const attendanceData = JSON.parse('{{ attendance_trend|default([])|tojson|escapejs }}');
+    // Assign max employees as a JS variable using tojson for valid JS syntax
+    const maxEmployees = {{ total_employees|default(10)|int }};
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
             scales: {
                 y: {
                     beginAtZero: true,
-                    max: {{ total_employees|default(10) }},
+                    max: maxEmployees,
                     grid: {
                         color: 'rgba(0,0,0,0.1)'
                     }

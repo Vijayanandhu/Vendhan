@@ -21,10 +21,8 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Project</th>
-                                    <th>Hours Worked</th>
-                                    <th>Files Processed</th>
+                                    <th>Quantity</th>
                                     <th>Description</th>
-                                    <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -33,27 +31,23 @@
                                 <tr>
                                     <td>{{ report.date.strftime('%Y-%m-%d') }}</td>
                                     <td>{{ report.project.name }}</td>
-                                    <td>{{ report.hours_worked or '-' }}</td>
-                                    <td>{{ report.files_processed or '-' }}</td>
+                                    <td>
+                                        {{ report.quantity }}
+                                        {% if report.project.billing_type == 'hourly' %}
+                                            Hours
+                                        {% else %}
+                                            {{ report.project.metric_label }}
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         <span title="{{ report.description }}">
                                             {{ report.description[:50] }}{% if report.description|length > 50 %}...{% endif %}
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge bg-{{ 'success' if report.is_approved else 'warning' }}">
-                                            {{ 'Approved' if report.is_approved else 'Pending' }}
-                                        </span>
-                                    </td>
-                                    <td>
                                         <button class="btn btn-sm btn-outline-primary" title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        {% if not report.is_approved %}
-                                        <button class="btn btn-sm btn-outline-secondary" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}

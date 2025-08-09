@@ -7,63 +7,42 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Billing Management</h5>
+                    <div>
+                        <a href="{{ url_for('calculate_billing') }}" class="btn btn-primary">
+                            <i class="fas fa-calculator me-1"></i>Billing Calculator
+                        </a>
+                        <a href="{{ url_for('manual_billing') }}" class="btn btn-secondary">
+                            <i class="fas fa-plus me-1"></i>Manual Record
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
-                    {% if billing_data %}
+                    {% if billing_records %}
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <thead>
                                 <tr>
                                     <th>Employee</th>
-                                    <th>Project</th>
                                     <th>Period</th>
-                                    <th>Hours/Units</th>
-                                    <th>Rate</th>
                                     <th>Total Amount</th>
                                     <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>Finalized At</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for data in billing_data %}
+                                {% for record in billing_records %}
                                 <tr>
+                                    <td>{{ record.employee.name }}</td>
+                                    <td>{{ record.period_start.strftime('%Y-%m-%d') }} to {{ record.period_end.strftime('%Y-%m-%d') }}</td>
+                                    <td>${{ "%.2f"|format(record.total_amount) }}</td>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            {% if data.employee.profile_picture %}
-                                            <img src="{{ url_for('static', filename='uploads/' + data.employee.profile_picture) }}" 
-                                                 alt="Profile" class="rounded-circle me-2" style="width: 32px; height: 32px;">
-                                            {% else %}
-                                            <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
-                                                 style="width: 32px; height: 32px;">
-                                                <i class="fas fa-user text-white"></i>
-                                            </div>
-                                            {% endif %}
-                                            <div>
-                                                <div class="fw-bold">{{ data.employee.name }}</div>
-                                                <small class="text-muted">{{ data.employee.department or 'N/A' }}</small>
-                                            </div>
-                                        </div>
+                                        <span class="badge bg-{{ 'success' if record.status == 'finalized' else 'warning' }}">
+                                            {{ record.status|title }}
+                                        </span>
                                     </td>
-                                    <td>Multiple Projects</td>
-                                    <td>Current Period</td>
-                                    <td>{{ data.total_hours }}h / {{ data.total_files }} files</td>
-                                    <td>Variable</td>
-                                    <td>${{ "%.2f"|format(data.total_earnings) }}</td>
-                                    <td>
-                                        <span class="badge bg-warning">Pending</span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <button class="btn btn-sm btn-outline-primary" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-outline-success" title="Generate Report">
-                                                <i class="fas fa-file-invoice-dollar"></i>
-                                            </button>
-                                        </div>
-                                    </td>
+                                    <td>{{ record.finalized_at.strftime('%Y-%m-%d %H:%M') if record.finalized_at else '-' }}</td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

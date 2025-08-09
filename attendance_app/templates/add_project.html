@@ -19,13 +19,6 @@
                                 <div class="mb-3">
                                     {{ form.name.label(class="form-label") }}
                                     {{ form.name(class="form-control") }}
-                                    {% if form.name.errors %}
-                                        <div class="text-danger">
-                                            {% for error in form.name.errors %}
-                                                <small>{{ error }}</small>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -44,21 +37,6 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    {{ form.file_count.label(class="form-label") }}
-                                    {{ form.file_count(class="form-control") }}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    {{ form.record_count.label(class="form-label") }}
-                                    {{ form.record_count(class="form-control") }}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
                                     {{ form.start_date.label(class="form-label") }}
                                     {{ form.start_date(class="form-control") }}
                                 </div>
@@ -71,18 +49,35 @@
                             </div>
                         </div>
                         
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    {{ form.billing_type.label(class="form-label") }}
-                                    {{ form.billing_type(class="form-control") }}
-                                </div>
+                        <div class="mb-3">
+                            {{ form.billing_type.label(class="form-label") }}
+                            {{ form.billing_type(class="form-control", id="billing_type") }}
+                        </div>
+
+                        <div id="hourly_fields">
+                            <div class="mb-3">
+                                {{ form.hourly_rate.label(class="form-label") }}
+                                {{ form.hourly_rate(class="form-control", step="0.01", min="0") }}
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    {{ form.billing_rate.label(class="form-label") }}
-                                    {{ form.billing_rate(class="form-control", step="0.01", min="0") }}
-                                    <small class="form-text text-muted">Rate per hour or per unit</small>
+                        </div>
+
+                        <div id="count_based_fields" style="display: none;">
+                            <div class="mb-3">
+                                {{ form.metric_label.label(class="form-label") }}
+                                {{ form.metric_label(class="form-control") }}
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.metric_divisor.label(class="form-label") }}
+                                        {{ form.metric_divisor(class="form-control", step="0.01", min="0") }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ form.metric_multiplier.label(class="form-label") }}
+                                        {{ form.metric_multiplier(class="form-control", step="0.01", min="0") }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -101,4 +96,25 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const billingType = document.getElementById('billing_type');
+        const hourlyFields = document.getElementById('hourly_fields');
+        const countBasedFields = document.getElementById('count_based_fields');
+
+        function toggleFields() {
+            if (billingType.value === 'hourly') {
+                hourlyFields.style.display = 'block';
+                countBasedFields.style.display = 'none';
+            } else {
+                hourlyFields.style.display = 'none';
+                countBasedFields.style.display = 'block';
+            }
+        }
+
+        billingType.addEventListener('change', toggleFields);
+        toggleFields();
+    });
+</script>
 {% endblock %}

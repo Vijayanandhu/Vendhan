@@ -1,4 +1,8 @@
-from app import app, db, User, Employee
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from attendance_app.app import app, db
+from attendance_app.models import User, Employee
 
 with app.app_context():
     # Check if admin user already exists

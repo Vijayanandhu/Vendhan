@@ -1,44 +1,33 @@
 {% extends 'base.html' %}
-{% block title %}Calculate Billing - {{ company_name or 'EMS 2.0' }}{% endblock %}
+
+{% block title %}Calculate Billing{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary-green text-white">
-                    <h3 class="mb-0"><i class="fas fa-calculator me-2"></i>Calculate Project Billing</h3>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Billing Calculator</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('billing_calculate') }}">
-                        {{ csrf_token }}
-                        <div class="row g-3">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        <div class="row">
                             <div class="col-md-6">
-                                <label for="start_date" class="form-label">Start Date</label>
-                                <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                <div class="mb-3">
+                                    {{ form.start_date.label(class="form-label") }}
+                                    {{ form.start_date(class="form-control") }}
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="end_date" class="form-label">End Date</label>
-                                <input type="date" class="form-control" id="end_date" name="end_date" required>
-                            </div>
-                            <div class="col-12">
-                                <label for="project_id" class="form-label">Project (Optional)</label>
-                                <select class="form-select" id="project_id" name="project_id">
-                                    <option value="">All Projects</option>
-                                    {% for project in projects %}
-                                    <option value="{{ project.id }}">{{ project.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <small class="form-text text-muted">
-                                    Leave blank to calculate for all projects.
-                                </small>
+                                <div class="mb-3">
+                                    {{ form.end_date.label(class="form-label") }}
+                                    {{ form.end_date(class="form-control") }}
+                                </div>
                             </div>
                         </div>
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary-green btn-lg">
-                                <i class="fas fa-cogs me-2"></i>Calculate
-                            </button>
-                        </div>
+                        <button type="submit" class="btn btn-primary">Calculate</button>
                     </form>
                 </div>
             </div>

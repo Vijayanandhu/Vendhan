@@ -18,29 +18,27 @@
         {{ form.hidden_tag() }}  {# This includes the CSRF token #}
         
         <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-tag"></i> Company Name
-            </label>
-            <input type="text" name="name" class="form-control" 
-                   value="{{ company.name if company else '' }}" 
-                   placeholder="Enter your company name" required>
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control", placeholder="Enter your company name") }}
+            {% for error in form.name.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         
         <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-map-marker-alt"></i> Address
-            </label>
-            <textarea name="address" class="form-control" rows="3" 
-                      placeholder="Enter company address" required>{{ company.address if company else '' }}</textarea>
+            {{ form.address.label(class="form-label") }}
+            {{ form.address(class="form-control", rows=3, placeholder="Enter company address") }}
+            {% for error in form.address.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         
         <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-envelope"></i> Email
-            </label>
-            <input type="email" name="email" class="form-control" 
-                   value="{{ company.email if company else '' }}" 
-                   placeholder="company@example.com" required>
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control", placeholder="company@example.com") }}
+            {% for error in form.email.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         
         <div class="form-group">
@@ -59,21 +57,19 @@
         </div>
         
         <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-phone"></i> Phone Number
-            </label>
-            <input type="tel" name="phone" class="form-control" 
-                   value="{{ company.phone if company else '' }}" 
-                   placeholder="+1 (555) 123-4567">
+            {{ form.phone.label(class="form-label") }}
+            {{ form.phone(class="form-control", placeholder="+1 (555) 123-4567") }}
+            {% for error in form.phone.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         
         <div class="form-group">
-            <label class="form-label">
-                <i class="fas fa-globe"></i> Website
-            </label>
-            <input type="url" name="website" class="form-control" 
-                   value="{{ company.website if company else '' }}" 
-                   placeholder="https://www.company.com">
+            {{ form.website.label(class="form-label") }}
+            {{ form.website(class="form-control", placeholder="https://www.company.com") }}
+            {% for error in form.website.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         
         <div class="button-group">

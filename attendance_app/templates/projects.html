@@ -1,24 +1,63 @@
-<!-- Project management -->
 {% extends "base.html" %}
 {% block title %}Manage Projects{% endblock %}
 {% block content %}
-<h2>Projects</h2>
-<a href="{{ url_for('add_project') }}" class="btn btn-success mb-3">Add Project</a>
-<table class="table table-bordered">
-    <thead>
-        <tr><th>Name</th><th>Description</th><th>Actions</th></tr>
-    </thead>
-    <tbody>
-        {% for project in projects %}
-        <tr>
-            <td>{{ project.name }}</td>
-            <td>{{ project.description }}</td>
-            <td>
-                <a href="{{ url_for('edit_project', project_id=project.id) }}" class="btn btn-sm btn-warning">Edit</a>
-                <a href="{{ url_for('delete_project', project_id=project.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this project?');">Delete</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Manage Projects</h5>
+                    <a href="{{ url_for('add_project') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Add Project
+                    </a>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('projects') }}" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control" placeholder="Search by project name..." value="{{ request.args.get('search', '') }}">
+                            <button class="btn btn-outline-secondary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Billing Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for project in projects %}
+                                <tr>
+                                    <td>{{ project.name }}</td>
+                                    <td>{{ project.description }}</td>
+                                    <td>{{ project.billing_type.replace('_', ' ')|title }}</td>
+                                    <td>{{ project.status|title }}</td>
+                                    <td>
+                                        <a href="{{ url_for('edit_project', project_id=project.id) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ url_for('delete_project', project_id=project.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this project?');">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No projects found.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

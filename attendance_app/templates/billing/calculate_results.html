@@ -1,101 +1,58 @@
 {% extends 'base.html' %}
-{% block title %}Billing Calculation Results - {{ company_name or 'EMS 2.0' }}{% endblock %}
+
+{% block title %}Billing Calculation Results{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="text-primary-green">
-                    <i class="fas fa-poll-h me-2"></i>Billing Results
-                </h2>
-                <a href="{{ url_for('billing_calculate') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Calculation
-                </a>
-            </div>
-
-            <div class="alert alert-info">
-                <strong>Period:</strong> {{ start_date.strftime('%B %d, %Y') }} to {{ end_date.strftime('%B %d, %Y') }}
-            </div>
-
-            {% if results %}
-            <form method="POST" action="{{ url_for('finalize_billing') }}">
-                {{ csrf_token }}
-                <input type="hidden" name="start_date" value="{{ start_date.isoformat() }}">
-                <input type="hidden" name="end_date" value="{{ end_date.isoformat() }}">
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">Calculated Totals</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Billing Calculation Results</h5>
+                    <h6 class="card-subtitle text-muted">For period: {{ start_date.strftime('%Y-%m-%d') }} to {{ end_date.strftime('%Y-%m-%d') }}</h6>
+                </div>
+                <div class="card-body">
+                    {% for result in results %}
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">{{ result.employee.name }}</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
                                 <thead>
                                     <tr>
-                                        <th>Employee</th>
                                         <th>Project</th>
-                                        <th>Billing Type</th>
-                                        <th>Metric</th>
-                                        <th>Total</th>
-                                        <th>Rate</th>
-                                        <th>Amount</th>
+                                        <th>Quantity</th>
+                                        <th>Earnings</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for result in results %}
+                                    {% for project in result.project_earnings %}
                                     <tr>
-                                        <td>{{ result.employee.name }}</td>
-                                        <td>{{ result.project.name }}</td>
-                                        <td>{{ result.billing_type|replace('_', ' ')|title }}</td>
-                                        <td>
-                                            {% if result.project.billing_method == 'hourly' %}
-                                                Hours Worked
-                                            {% elif result.project.billing_method == 'record_count' %}
-                                                Records Processed
-                                            {% elif result.project.billing_method == 'character_count' %}
-                                                Characters Written
-                                            {% elif result.project.billing_method == 'task_completion' %}
-                                                Tasks Completed
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            {% if result.project.billing_method == 'hourly' %}
-                                                {{ "%.2f"|format(result.total_hours) }}
-                                            {% elif result.project.billing_method == 'record_count' %}
-                                                {{ result.total_units }}
-                                            {% elif result.project.billing_method == 'character_count' %}
-                                                {{ result.total_units }}
-                                            {% elif result.project.billing_method == 'task_completion' %}
-                                                {{ result.total_units }}
-                                            {% endif %}
-                                        </td>
-                                        <td>${{ "%.2f"|format(result.rate) }}</td>
-                                        <td><strong>${{ "%.2f"|format(result.amount) }}</strong></td>
+                                        <td>{{ project.name }}</td>
+                                        <td>{{ project.quantity }}</td>
+                                        <td>${{ "%.2f"|format(project.earnings) }}</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="2" class="text-end">Total Earnings:</th>
+                                        <th>${{ "%.2f"|format(result.total_earnings) }}</th>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>
-                </div>
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-success btn-lg">
-                        <i class="fas fa-check-circle me-2"></i>Finalize and Save Billing Records
-                    </button>
-                </div>
-            </form>
-            {% else %}
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-                    <h4 class="text-muted">No Data Found</h4>
-                    <p class="text-muted">
-                        No work reports were found for the selected period.
-                    </p>
+                    {% endfor %}
+                    <form action="{{ url_for('finalize_billing') }}" method="POST" class="d-inline">
+                        <input type="hidden" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') }}">
+                        <input type="hidden" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') }}">
+                        <button type="submit" class="btn btn-success">Finalize Billing</button>
+                    </form>
+                    <a href="{{ url_for('calculate_billing') }}" class="btn btn-primary">Back to Calculator</a>
                 </div>
             </div>
-            {% endif %}
         </div>
     </div>
 </div>

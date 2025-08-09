@@ -1,3 +1,28 @@
+
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
+
+db = SQLAlchemy()
+
+# ...existing code...
+
+# Project Journal Entry Model (correct placement)
+class ProjectJournal(db.Model):
+    __tablename__ = 'project_journal'
+    id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False)
+    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    object_ids = db.Column(db.String(255), nullable=True)  # Comma-separated IDs
+    task_type = db.Column(db.String(100), nullable=False)
+    hours_spent = db.Column(db.Float, nullable=False)
+    status = db.Column(db.Text, nullable=False)  # JSON string or text for status per object
+    comments = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    employee = db.relationship('Employee', backref='project_journals')
+    project = db.relationship('Project', backref='project_journals')
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
@@ -55,16 +80,21 @@ class Project(db.Model):
     __tablename__ = 'project'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    file_count = db.Column(db.Integer, default=0)
-    record_count = db.Column(db.Integer, default=0)
     description = db.Column(db.String(300))
-    billing_method = db.Column(db.String(50), nullable=False, default='record_count') # record_count, character_count, hourly, task_completion
-    billing_rate = db.Column(db.Float, default=0.0)  # Base rate for calculations
-    billing_formula = db.Column(db.String(200), nullable=True)  # Custom formula like "[(Total record count/1000)*4.85]"
-    billing_unit = db.Column(db.String(50), default='record')  # record, character, hour, task, etc.
     start_date = db.Column(db.Date, nullable=True)
     end_date = db.Column(db.Date, nullable=True)
     status = db.Column(db.String(20), default='active')  # active, completed, on_hold
+    
+    # Billing Information
+    billing_type = db.Column(db.String(50), nullable=False, default='hourly') # 'hourly' or 'count_based'
+    
+    # Fields for 'hourly' billing
+    hourly_rate = db.Column(db.Float, nullable=True)
+    
+    # Fields for 'count_based' billing
+    metric_label = db.Column(db.String(100), nullable=True) # e.g., "Records Processed"
+    metric_divisor = db.Column(db.Float, nullable=True)
+    metric_multiplier = db.Column(db.Float, nullable=True)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     report_template_id = db.Column(db.Integer, db.ForeignKey('report_template.id'), nullable=True)
 
@@ -75,42 +105,15 @@ class Project(db.Model):
     work_reports = db.relationship('WorkReport', backref='project', lazy=True)
 
     def calculate_billing_amount(self, quantity):
-        """Calculate billing amount based on project's billing method and formula"""
-        if self.billing_method == 'hourly':
-            return quantity * self.billing_rate
-        elif self.billing_method == 'record_count':
-            if self.billing_formula:
-                try:
-                    # Replace placeholders in formula
-                    formula = self.billing_formula.replace('Total record count', str(quantity))
-                    formula = formula.replace('record_count', str(quantity))
-                    formula = formula.replace('[', '').replace(']', '')
-                    # Safe evaluation of mathematical expressions
-                    import re
-                    if re.match(r'^[\d\+\-\*\/\(\)\.\s]+$', formula):
-                        return eval(formula)
-                    else:
-                        return quantity * self.billing_rate
-                except:
-                    return quantity * self.billing_rate
-            return quantity * self.billing_rate
-        elif self.billing_method == 'character_count':
-            if self.billing_formula:
-                try:
-                    formula = self.billing_formula.replace('character_count', str(quantity))
-                    formula = formula.replace('[', '').replace(']', '')
-                    import re
-                    if re.match(r'^[\d\+\-\*\/\(\)\.\s]+$', formula):
-                        return eval(formula)
-                    else:
-                        return quantity * self.billing_rate
-                except:
-                    return quantity * self.billing_rate
-            return quantity * self.billing_rate
-        elif self.billing_method == 'task_completion':
-            return quantity * self.billing_rate
+        """Calculate billing amount based on project's billing type"""
+        if self.billing_type == 'hourly':
+            return quantity * (self.hourly_rate or 0)
+        elif self.billing_type == 'count_based':
+            if self.metric_divisor and self.metric_multiplier:
+                return (quantity / self.metric_divisor) * self.metric_multiplier
+            return 0
         else:
-            return quantity * self.billing_rate
+            return 0
 
 # Attendance (Clock In/Out)
 class Attendance(db.Model):
@@ -130,6 +133,9 @@ class LeaveRequest(db.Model):
     end_date = db.Column(db.Date, nullable=False)
     reason = db.Column(db.String(255))
     status = db.Column(db.String(50), default='pending')  # pending, approved, denied
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    approved_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    approved_at = db.Column(db.DateTime, nullable=True)
 
 # Daily Work Report for tracking number of files/records
 class WorkReport(db.Model):
@@ -137,16 +143,9 @@ class WorkReport(db.Model):
     employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     date = db.Column(db.Date, nullable=False)
-    notes = db.Column(db.String(255))
-    
-    # Metrics for different billing methods
-    record_count = db.Column(db.Integer, nullable=True)
-    character_count = db.Column(db.Integer, nullable=True)
-    hours_worked = db.Column(db.Float, nullable=True)
-    tasks_completed = db.Column(db.Integer, nullable=True)
-    
-    # For dynamic fields
-    report_data = db.relationship('WorkReportData', backref='work_report', lazy=True, cascade="all, delete-orphan")
+    description = db.Column(db.Text, nullable=False)
+    quantity = db.Column(db.Float, nullable=False) # Represents hours for hourly projects, or the count for count-based projects
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
 # Report Templates
 class ReportTemplate(db.Model):
@@ -207,21 +206,15 @@ class ProjectTrainingAssignment(db.Model):
 class BillingRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
-    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     period_start = db.Column(db.Date, nullable=False)
     period_end = db.Column(db.Date, nullable=False)
-    hours_worked = db.Column(db.Float, default=0)
-    units_completed = db.Column(db.Integer, default=0)  # for count-based projects
-    rate = db.Column(db.Float, nullable=False)
     total_amount = db.Column(db.Float, nullable=False)
-    billing_method = db.Column(db.String(20), nullable=False)  # hourly, record_count, character_count
     status = db.Column(db.String(20), default='draft')  # draft, finalized, paid
     notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
     finalized_at = db.Column(db.DateTime, nullable=True)
     
     employee = db.relationship('Employee', backref='billing_records')
-    project = db.relationship('Project', backref='billing_records')
 
 class InternalMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
